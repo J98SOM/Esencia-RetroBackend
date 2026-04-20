@@ -4,300 +4,115 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - {{ config('app.name', 'Laravel') }}</title>
-    
+
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/css/dashboard.css', 'resources/js/app.js', 'resources/js/dashboard.js'])
     @endif
+
+    <style>
+        .card-hover {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white dark:bg-gray-800 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    {{ config('app.name', 'Laravel') }}
-                </h1>
-                <span class="text-sm text-gray-600 dark:text-gray-400">/ Dashboard</span>
+<body class="font-sans antialiased">
+    <x-sidebar title="Panel de Control">
+        <x-slot name="navigation">
+            <a href="/dashboard" class="block px-4 py-3 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 font-semibold transition">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4"/>
+                </svg>
+                Panel de Control
+            </a>
+            <a href="/usuarios" class="block px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 font-semibold transition">
+                <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM15 20H9m6 0h6M9 20H3m6 0a9 9 0 1118 0m-9 0a4.5 4.5 0 100-9 4.5 4.5 0 000 9z"/>
+                </svg>
+                Gestión de Usuarios
+            </a>
+        </x-slot>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Page Title -->
+            <div class="mb-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-2">Panel de Control</h2>
+                <p class="text-gray-600">Selecciona una opción para comenzar</p>
             </div>
-            <button
-                id="logout-btn"
-                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-            >
-                Cerrar Sesión
-            </button>
-        </div>
-    </nav>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Welcome Card -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                ¡Bienvenido, <span id="user-name">Usuario</span>!
-            </h2>
-            <p class="text-gray-600 dark:text-gray-400">
-                Tu sesión se ha iniciado correctamente. Puedes gestionar tu perfil y datos desde aquí.
-            </p>
-        </div>
-
-        <!-- User Info Card -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Profile Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Información del Perfil</h3>
-                
-                <div class="space-y-4">
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Nombre</p>
-                        <p id="profile-name" class="text-lg font-semibold text-gray-900 dark:text-white">-</p>
-                    </div>
-
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Correo Electrónico</p>
-                        <p id="profile-email" class="text-lg font-semibold text-gray-900 dark:text-white break-all">-</p>
-                    </div>
-
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Rol</p>
-                        <div id="profile-role" class="inline-block">
-                            <span class="px-3 py-1 rounded-full text-sm font-semibold text-white bg-blue-600">-</span>
+            <!-- Dashboard Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Usuarios y Roles Card -->
+                <a href="/usuarios" class="card-link">
+                    <div class="card-hover bg-white rounded-2xl p-8 shadow-lg h-full">
+                        <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mb-6">
+                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM15 20H9m6 0h6M9 20H3m6 0a9 9 0 1118 0m-9 0a4.5 4.5 0 100-9 4.5 4.5 0 000 9z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">Gestión de Usuarios y Roles</h3>
+                        <p class="text-gray-600 mb-4">Administra usuarios del sistema y asigna roles. Controla permisos y accesos.</p>
+                        <div class="flex items-center text-purple-600 font-semibold">
+                            Ir a la gestión
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
                         </div>
                     </div>
+                </a>
 
-                    <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Fecha de Registro</p>
-                        <p id="profile-created" class="text-lg font-semibold text-gray-900 dark:text-white">-</p>
+                <!-- Settings Card -->
+                <div class="card-link">
+                    <div class="card-hover bg-white rounded-2xl p-8 shadow-lg h-full opacity-60">
+                        <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mb-6">
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">Configuración</h3>
+                        <p class="text-gray-600 mb-4">Ajusta las configuraciones del sistema, preferencias y parámetros generales.</p>
+                        <div class="flex items-center text-blue-600 font-semibold">
+                            Próximamente
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
-                <button
-                    id="refresh-btn"
-                    class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-                >
-                    Actualizar Datos
-                </button>
-            </div>
-
-            <!-- Token Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Token de Autenticación</h3>
-                
-                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg mb-4">
-                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Tu token (para API requests):</p>
-                    <div class="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700">
-                        <p id="token-display" class="text-xs text-gray-900 dark:text-white break-all font-mono">
-                            Cargando...
-                        </p>
+                <!-- Reports Card -->
+                <div class="card-link">
+                    <div class="card-hover bg-white rounded-2xl p-8 shadow-lg h-full opacity-60">
+                        <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full mb-6">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3">Reportes</h3>
+                        <p class="text-gray-600 mb-4">Visualiza estadísticas, análisis y reportes del sistema en tiempo real.</p>
+                        <div class="flex items-center text-green-600 font-semibold">
+                            Próximamente
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
-
-                <button
-                    id="copy-token-btn"
-                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition mb-4"
-                >
-                    Copiar Token
-                </button>
-
-                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p class="text-sm text-blue-700 dark:text-blue-400">
-                        <span class="font-semibold">Consejo:</span> Usa este token en el header <code class="bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded text-xs">Authorization: Bearer {token}</code> para acceder a endpoints protegidos.
-                    </p>
-                </div>
             </div>
         </div>
-
-        <!-- API Endpoints Card -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 mt-8">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Endpoints de API Disponibles</h3>
-            
-            <div class="space-y-3">
-                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                    <p class="text-sm font-mono text-gray-900 dark:text-white mb-1">GET /api/me</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Obtener datos del usuario autenticado</p>
-                </div>
-
-                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                    <p class="text-sm font-mono text-gray-900 dark:text-white mb-1">GET /api/users</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Listar todos los usuarios</p>
-                </div>
-
-                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                    <p class="text-sm font-mono text-gray-900 dark:text-white mb-1">GET /api/users/{id}</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Obtener un usuario específico</p>
-                </div>
-
-                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                    <p class="text-sm font-mono text-gray-900 dark:text-white mb-1">PUT /api/users/{id}</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Actualizar un usuario</p>
-                </div>
-
-                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                    <p class="text-sm font-mono text-gray-900 dark:text-white mb-1">DELETE /api/users/{id}</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Eliminar un usuario</p>
-                </div>
-
-                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                    <p class="text-sm font-mono text-gray-900 dark:text-white mb-1">POST /api/logout</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Cerrar sesión y revocar token</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        /**
-         * Obtener token del localStorage
-         */
-        function getAuthToken() {
-            return localStorage.getItem('auth_token');
-        }
-
-        /**
-         * Verificar autenticación
-         */
-        function checkAuth() {
-            const token = getAuthToken();
-            if (!token) {
-                window.location.href = '/login';
-                return false;
-            }
-            return true;
-        }
-
-        /**
-         * Cargar datos del usuario desde localStorage
-         */
-        function loadUserFromStorage() {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                displayUserInfo(user);
-            }
-        }
-
-        /**
-         * Mostrar información del usuario
-         */
-        function displayUserInfo(user) {
-            document.getElementById('user-name').textContent = user.name;
-            document.getElementById('profile-name').textContent = user.name;
-            document.getElementById('profile-email').textContent = user.email;
-            
-            const roleSpan = document.getElementById('profile-role');
-            const roleBg = user.role === 'admin' ? 'bg-purple-600' : 'bg-blue-600';
-            roleSpan.innerHTML = `<span class="px-3 py-1 rounded-full text-sm font-semibold text-white ${roleBg}">${user.role}</span>`;
-            
-            // Formatear fecha
-            const createdDate = new Date(user.created_at);
-            const formattedDate = createdDate.toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('profile-created').textContent = formattedDate;
-
-            // Mostrar token
-            const token = getAuthToken();
-            document.getElementById('token-display').textContent = token || 'No disponible';
-        }
-
-        /**
-         * Copiar token al portapapeles
-         */
-        document.getElementById('copy-token-btn').addEventListener('click', () => {
-            const token = getAuthToken();
-            if (token) {
-                navigator.clipboard.writeText(token).then(() => {
-                    alert('¡Token copiado al portapapeles!');
-                }).catch(() => {
-                    alert('Error al copiar el token');
-                });
-            }
-        });
-
-        /**
-         * Actualizar datos del usuario
-         */
-        document.getElementById('refresh-btn').addEventListener('click', async () => {
-            const token = getAuthToken();
-            const btn = document.getElementById('refresh-btn');
-            btn.disabled = true;
-            btn.textContent = 'Actualizando...';
-
-            try {
-                const response = await fetch('/api/me', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error al obtener datos');
-                }
-
-                const data = await response.json();
-                localStorage.setItem('user', JSON.stringify(data.user));
-                displayUserInfo(data.user);
-                alert('Datos actualizados correctamente');
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al actualizar los datos');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Actualizar Datos';
-            }
-        });
-
-        /**
-         * Logout
-         */
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            if (!confirm('¿Deseas cerrar sesión?')) {
-                return;
-            }
-
-            const token = getAuthToken();
-            const btn = document.getElementById('logout-btn');
-            btn.disabled = true;
-
-            try {
-                const response = await fetch('/api/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error al cerrar sesión');
-                }
-
-                // Limpiar localStorage
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user');
-
-                // Redirigir a login
-                window.location.href = '/login';
-            } catch (error) {
-                console.error('Error:', error);
-                // Aún así limpiamos y redirigimos
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user');
-                window.location.href = '/login';
-            }
-        });
-
-        // Inicializar
-        document.addEventListener('DOMContentLoaded', () => {
-            if (checkAuth()) {
-                loadUserFromStorage();
-            }
-        });
-    </script>
+    </x-sidebar>
 </body>
 </html>

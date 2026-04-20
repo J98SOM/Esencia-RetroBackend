@@ -1,0 +1,36 @@
+/* Login Page Styles */
+
+/* Input focus states */
+input:focus {
+    outline: none;
+}
+
+/* Label styling */
+label {
+    display: block;
+}
+
+/* Form inputs */
+input[type="email"],
+input[type="password"],
+input[type="checkbox"] {
+    transition: all 0.3s ease;
+}
+
+/* Button hover effects */
+button[type="submit"]:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+button[type="submit"]:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    main {
+        padding: 1rem;
+    }
+}
+

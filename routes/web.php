@@ -13,3 +13,8 @@ Route::get('/login', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
+
+// Users Management route
+Route::get('/usuarios', function () {
+    return view('usuarios.index');
+})->name('usuarios.index');

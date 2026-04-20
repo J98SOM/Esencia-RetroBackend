@@ -1,0 +1,17 @@
+/* Dashboard Specific Styles */
+
+.card-hover {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -16,4 +17,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{user}', [AuthController::class, 'show']);
     Route::put('/users/{user}', [AuthController::class, 'update']);
     Route::delete('/users/{user}', [AuthController::class, 'destroy']);
+
+    // Role CRUD routes
+    Route::get('/roles', [RoleController::class, 'index']);
+    Route::get('/roles/{role}', [RoleController::class, 'show']);
+    Route::post('/roles', [RoleController::class, 'store']);
+    Route::put('/roles/{role}', [RoleController::class, 'update']);
+    Route::delete('/roles/{role}', [RoleController::class, 'destroy']);
 });

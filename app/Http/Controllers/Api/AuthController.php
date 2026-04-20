@@ -83,7 +83,7 @@ class AuthController extends Controller
      */
     public function index(): JsonResponse
     {
-        $users = User::all();
+        $users = User::with('role')->get();
 
         return response()->json([
             'users' => UserResource::collection($users),
@@ -95,6 +95,8 @@ class AuthController extends Controller
      */
     public function show(User $user): JsonResponse
     {
+        $user->load('role');
+
         return response()->json([
             'user' => new UserResource($user),
         ], 200);
