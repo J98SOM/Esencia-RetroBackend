@@ -9,12 +9,12 @@
         @vite(['resources/css/app.css', 'resources/css/login.css', 'resources/js/app.js', 'resources/js/login.js'])
     @endif
 </head>
-<body class="font-sans antialiased bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+<body class="font-sans antialiased bg-gradient-to-br from-gray-950 to-gray-900 min-h-screen">
     <div class="flex flex-col min-h-screen">
         <!-- Header -->
-        <header class="bg-white shadow-md">
+        <header class="bg-gray-900 shadow-lg">
             <div class="px-6 lg:px-8 py-4 flex items-center justify-between">
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-amber-500 bg-clip-text text-transparent">
                     Esencia
                 </h1>
             </div>
@@ -36,18 +36,18 @@
                 </div>
 
                 <!-- Login Card -->
-                <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <div class="bg-gray-800 rounded-2xl p-8 shadow-2xl border border-gray-700">
                     <!-- Card Header -->
                     <div class="mb-8">
-                        <h2 class="text-3xl font-bold text-gray-900 mb-2">Bienvenido de vuelta</h2>
-                        <p class="text-gray-600">Inicia sesión para acceder a tu cuenta</p>
+                        <h2 class="text-3xl font-bold text-white mb-2">Bienvenido de vuelta</h2>
+                        <p class="text-white/80">Inicia sesión para acceder a tu cuenta</p>
                     </div>
 
                     <!-- Login Form -->
                     <form id="login-form" class="space-y-6">
                         <!-- Email Input -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                            <label class="block text-sm font-semibold text-white mb-2">Email</label>
                             <div class="relative">
                                 <div class="absolute left-0 top-0 h-full flex items-center pl-4 pointer-events-none">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,14 +60,14 @@
                                     name="email"
                                     required
                                     placeholder="tu@email.com"
-                                    class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                    class="w-full pl-12 pr-4 py-3 bg-gray-700 border border-gray-600 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
                                 />
                             </div>
                         </div>
 
                         <!-- Password Input -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
+                            <label class="block text-sm font-semibold text-white mb-2">Contraseña</label>
                             <div class="relative">
                                 <div class="absolute left-0 top-0 h-full flex items-center pl-4 pointer-events-none">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +80,7 @@
                                     name="password"
                                     required
                                     placeholder="Mínimo 8 caracteres"
-                                    class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                    class="w-full pl-12 pr-4 py-3 bg-gray-700 border border-gray-600 text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
                                 />
                             </div>
                         </div>
@@ -90,11 +90,11 @@
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
-                                    class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                    class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-amber-500 focus:ring-amber-500"
                                 />
-                                <span class="text-gray-700">Recuerda mi cuenta</span>
+                                <span class="text-white">Recuerda mi cuenta</span>
                             </label>
-                            <a href="#" class="text-purple-600 hover:text-purple-700 font-semibold transition">
+                            <a href="#" class="text-amber-600 hover:text-amber-700 font-semibold transition">
                                 ¿Olvidaste tu contraseña?
                             </a>
                         </div>
@@ -103,7 +103,7 @@
                         <button
                             type="submit"
                             id="submit-btn"
-                            class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 rounded-lg transition duration-200 flex items-center justify-center gap-2 mt-8 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                            class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-3 rounded-lg transition duration-200 flex items-center justify-center gap-2 mt-8 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                         >
                             <span id="btn-text">Iniciar Sesión</span>
                             <span id="btn-spinner" class="hidden">

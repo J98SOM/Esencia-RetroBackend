@@ -1,16 +1,36 @@
 <!-- Sidebar Component -->
 <div class="flex h-screen">
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed left-0 top-0 h-screen w-64 bg-white shadow-xl transform transition-all duration-300 ease-in-out z-40 -translate-x-full lg:translate-x-0 lg:relative lg:w-64 sidebar-expanded">
-        <div class="flex flex-col h-full">
+    <aside id="sidebar" class="fixed left-0 top-0 h-screen w-64 bg-surface-container-low border-r border-surface-container shadow-2xl transform transition-all duration-300 ease-in-out z-40 -translate-x-full lg:translate-x-0 lg:relative lg:w-64 sidebar-expanded">
+        <div class="flex flex-col h-full bg-gradient-to-b from-surface-container-low to-background">
             <!-- Sidebar Header -->
-            <div class="p-6 border-b border-gray-200 flex items-center justify-between">
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent sidebar-title transition-all duration-300">
-                    Esencia
-                </h1>
-                <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            <div class="border-b border-surface-container flex items-center justify-center h-20 bg-surface-container/50 shadow-[0_5px_15px_rgba(234,188,78,0.05)]">
+    
+    <!-- Logo grande -->
+    <img src="{{ asset('img/logo_max.png') }}" class="sidebar-title h-28 w-40 object-contain transition-all duration-300 pointer-events-none">
+
+    <!-- Logo pequeño -->
+    <img src="{{ asset('img/logo_mi.png') }}" class="sidebar-logo h-28 w-28 object-contain rounded-lg transition-all duration-300">
+
+    <!-- Botón mobile -->
+    <button onclick="toggleSidebar()"
+        class="lg:hidden text-on-surface-variant hover:text-on-surface flex-shrink-0 w-6 h-6 flex items-center justify-center absolute right-2 top-2">
+        
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+</div>
+
+            <!-- Expand/Minimize button (same place for both states) -->
+            <div class="px-4 py-2 border-b border-surface-container">
+                <button onclick="minimizeSidebar()" class="hidden lg:flex text-white/60 hover:text-white flex-shrink-0 w-full items-center justify-center sidebar-toggle-btn transition-all duration-300 rounded-lg hover:bg-surface-container-highest hover:shadow-[inset_0_0_10px_rgba(234,188,78,0.1)] py-2" title="Minimizar/Expandir">
+                    <svg class="w-6 h-6 minimize-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+
+                    <svg class="w-6 h-6 expand-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </button>
             </div>
@@ -23,17 +43,17 @@
             </nav>
 
             <!-- User Profile Section -->
-            <div class="p-4 border-t border-gray-200 space-y-4">
+            <div class="p-4 border-t border-surface-container space-y-4 bg-surface-container/30">
                 <!-- User Info -->
-                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 user-info transition-all duration-300">
-                    <p class="text-xs text-gray-500 mb-2 user-label">Usuario autenticado</p>
-                    <p id="sidebar-user-name" class="text-sm font-semibold text-gray-900 truncate user-name">Usuario</p>
+                <div class="bg-gradient-to-r from-primary-container/40 to-surface-container rounded-lg p-4 user-info transition-all duration-300 border border-primary-container/50 shadow-[inset_0_0_15px_rgba(234,188,78,0.05)]">
+                    <p class="text-xs text-white/70 mb-2 user-label uppercase tracking-widest">Autenticado</p>
+                    <p id="sidebar-user-name" class="text-sm font-semibold text-white truncate user-name tracking-wide">Usuario</p>
                 </div>
 
                 <!-- Logout Button -->
                 <button
                     onclick="logout()"
-                    class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 logout-btn"
+                    class="w-full bg-gradient-to-r from-surface-container to-surface-container-low border border-surface-container hover:border-primary-container/80 hover:text-primary text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 logout-btn hover:shadow-[0_0_15px_rgba(234,188,78,0.15)] group"
                     title="Cerrar Sesión"
                 >
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,12 +71,12 @@
     <!-- Main Content -->
     <div class="flex-1 flex flex-col overflow-hidden transition-all duration-300">
         <!-- Top Bar -->
-        <header class="bg-white shadow-md sticky top-0 z-20">
+        <header class="bg-surface-container shadow-[0_5px_15px_rgba(0,0,0,0.5)] sticky top-0 z-20 border-b border-surface-container-high">
             <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                 <!-- Mobile Menu Button -->
                 <button 
                     onclick="toggleSidebar()" 
-                    class="lg:hidden text-gray-600 hover:text-gray-900 transition"
+                    class="lg:hidden text-white/60 hover:text-white transition"
                 >
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -64,82 +84,159 @@
                 </button>
 
                 <!-- Page Title -->
-                <h2 class="text-2xl font-bold text-gray-900">{{ $title ?? 'Dashboard' }}</h2>
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-dark tracking-wide">{{ $title ?? 'Dashboard' }}</h2>
 
                 <div></div>
             </div>
         </header>
 
         <!-- Page Content -->
-        <main class="flex-1 overflow-auto bg-gradient-to-br from-blue-50 to-indigo-50">
+        <main class="flex-1 overflow-auto bg-surface-variant">
             {{ $slot }}
         </main>
     </div>
 </div>
 
-<style>
-    #sidebar {
-        transition: all 0.3s ease-in-out;
-        overflow: hidden;
-    }
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Sidebar Management
+        const token = localStorage.getItem('auth_token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-    /* Navigation items styling */
-    #sidebar nav {
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-
-    #sidebar nav a {
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        flex-wrap: nowrap;
-        gap: 0.75rem;
-    }
-</style>
-
-<script>
-    const token = localStorage.getItem('auth_token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-    if (!token) {
-        window.location.href = '/login';
-    }
-
-    // Set user name in sidebar
-    document.getElementById('sidebar-user-name').textContent = user.name || 'Usuario';
-
-    /**
-     * Toggle sidebar on mobile
-     */
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
-        
-        sidebar.classList.toggle('-translate-x-full');
-        overlay.classList.toggle('hidden');
-    }
-
-    /**
-     * Logout
-     */
-    async function logout() {
-        if (!confirm('¿Deseas cerrar sesión?')) return;
-
-        try {
-            await fetch('/api/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                },
-            });
-        } catch (error) {
-            console.error('Error:', error);
-        } finally {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user');
+        if (!token) {
             window.location.href = '/login';
         }
-    }
-</script>
+
+        // Set user name in sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            const userNameElement = document.getElementById('sidebar-user-name');
+            if (userNameElement) {
+                userNameElement.textContent = user.name || 'Usuario';
+            }
+            
+            // Restore sidebar state on page load
+            restoreSidebarState();
+        });
+
+        // Manejar cambios de tamaño de ventana
+        window.addEventListener('resize', function() {
+            restoreSidebarState();
+        });
+
+        /**
+         * Restore sidebar state on page load
+         */
+        function restoreSidebarState() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+            
+            // En pantallas pequeñas (mobile), siempre expandido
+            const isMobile = window.innerWidth < 1024; // lg breakpoint en Tailwind
+            
+            if (isMobile) {
+                sidebar.classList.remove('sidebar-minimized');
+                sidebar.classList.add('sidebar-expanded');
+                localStorage.setItem('sidebar_minimized', 'false');
+                return;
+            }
+            
+            // En desktop, restaurar estado guardado
+            const isMinimized = localStorage.getItem('sidebar_minimized') === 'true';
+            
+            if (isMinimized) {
+                sidebar.classList.remove('sidebar-expanded');
+                sidebar.classList.add('sidebar-minimized');
+            } else {
+                sidebar.classList.add('sidebar-expanded');
+                sidebar.classList.remove('sidebar-minimized');
+            }
+        }
+
+        /**
+         * Minimize/Expand sidebar on desktop
+         */
+        function minimizeSidebar() {
+            // No permitir minimizar en mobile
+            const isMobile = window.innerWidth < 1024;
+            if (isMobile) return;
+            
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+            
+            const isMinimized = sidebar.classList.contains('sidebar-minimized');
+            
+            if (isMinimized) {
+                sidebar.classList.remove('sidebar-minimized');
+                sidebar.classList.add('sidebar-expanded');
+                localStorage.setItem('sidebar_minimized', 'false');
+            } else {
+                sidebar.classList.add('sidebar-minimized');
+                sidebar.classList.remove('sidebar-expanded');
+                localStorage.setItem('sidebar_minimized', 'true');
+            }
+        }
+
+        /**
+         * Toggle sidebar on mobile
+         */
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            }
+        }
+
+        /**
+         * Logout
+         */
+        async function logout() {
+            const Swal = window.Swal;
+            if (!Swal) {
+                if (confirm('¿Deseas cerrar sesión?')) {
+                    await performLogout();
+                }
+                return;
+            }
+
+            const result = await Swal.fire({
+                title: '¿Cerrar Sesión?',
+                text: '¿Deseas cerrar tu sesión actual?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#b45309',
+                cancelButtonColor: '#4b5563',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) return;
+
+            await performLogout();
+        }
+
+        /**
+         * Perform logout action
+         */
+        async function performLogout() {
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    },
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            }
+        }
+    </script>
+@endpush

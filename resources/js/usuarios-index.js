@@ -1,3 +1,7 @@
+// Import SweetAlert2
+import Swal from 'sweetalert2';
+import '../css/sweetalert.css';
+
 // Hacer que las funciones sean globales
 (function() {
     let rolesMap = {};
@@ -56,7 +60,12 @@
             displayUsers(users);
         } catch (error) {
             console.error('Error loading users:', error);
-            alert('Error al cargar usuarios');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar usuarios',
+                confirmButtonText: 'Aceptar'
+            });
         }
     };
 
@@ -72,20 +81,20 @@
             
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="px-6 py-4 text-gray-900">${user.id}</td>
-                <td class="px-6 py-4 text-gray-900 font-medium">${user.name}</td>
-                <td class="px-6 py-4 text-gray-600">${user.email}</td>
+                <td class="px-6 py-4 text-white">${user.id}</td>
+                <td class="px-6 py-4 text-white font-medium">${user.name}</td>
+                <td class="px-6 py-4 text-white">${user.email}</td>
                 <td class="px-6 py-4">
                     <span class="inline-block px-3 py-1 rounded-full text-white text-xs font-semibold ${roleBadgeClass}">
                         ${roleName}
                     </span>
                 </td>
-                <td class="px-6 py-4 text-gray-600 text-sm">${new Date(user.created_at).toLocaleDateString('es-ES')}</td>
+                <td class="px-6 py-4 text-white text-sm">${new Date(user.created_at).toLocaleDateString('es-ES')}</td>
                 <td class="px-6 py-4 text-center space-x-2">
-                    <button onclick="editUser(${user.id})" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-semibold">
+                    <button onclick="editUser(${user.id})" class="px-3 py-1 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded hover:from-amber-700 hover:to-amber-800 text-xs font-semibold">
                         Editar
                     </button>
-                    <button onclick="deleteUser(${user.id})" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs font-semibold">
+                    <button onclick="deleteUser(${user.id})" class="px-3 py-1 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded hover:from-orange-700 hover:to-orange-800 text-xs font-semibold">
                         Eliminar
                     </button>
                 </td>
@@ -94,13 +103,20 @@
         });
     }
 
-    window.openUserModal = function() {
-        document.getElementById('user-id').value = '';
-        document.getElementById('user-form').reset();
-        document.getElementById('user-modal-title').textContent = 'Crear Usuario';
+    window.openUserModal = function(mode = 'create') {
+        // Only reset if creating new user
+        if (mode === 'create') {
+            document.getElementById('user-id').value = '';
+            document.getElementById('user-form').reset();
+            document.getElementById('user-modal-title').textContent = 'Crear Usuario';
+        }
         document.getElementById('user-form-error').classList.add('hidden');
         document.getElementById('user-modal').classList.remove('hidden');
-        loadRolesForSelect();
+        
+        // Load roles if creating
+        if (mode === 'create') {
+            loadRolesForSelect();
+        }
     };
 
     window.closeUserModal = function() {
@@ -135,6 +151,9 @@
 
     window.editUser = async function(userId) {
         try {
+            // Load roles first for the select
+            await loadRolesForSelect();
+
             const response = await fetch(`/api/users/${userId}`, {
                 method: 'GET',
                 headers: {
@@ -147,24 +166,44 @@
             const data = await response.json();
             const user = data.user || data.data;
 
+            // Populate fields
             document.getElementById('user-id').value = user.id;
             document.getElementById('user-name-input').value = user.name;
             document.getElementById('user-email-input').value = user.email;
-            document.getElementById('user-role-input').value = user.role_id || '';
             document.getElementById('user-password-input').value = '';
             document.getElementById('user-password-confirm-input').value = '';
+            
+            // Set role after roles are loaded
+            setTimeout(() => {
+                document.getElementById('user-role-input').value = user.role_id || '';
+            }, 100);
+            
             document.getElementById('user-modal-title').textContent = 'Editar Usuario';
             document.getElementById('user-form-error').classList.add('hidden');
 
-            openUserModal();
+            openUserModal('edit');
         } catch (error) {
             console.error('Error loading user:', error);
-            alert('Error al cargar usuario');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar usuario: ' + error.message,
+                confirmButtonText: 'Aceptar'
+            });
         }
     };
 
     window.deleteUser = async function(userId) {
-        if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return;
+        Swal.fire({
+            title: '¿Eliminar Usuario?',
+            text: '¿Estás seguro de que deseas eliminar este usuario?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: false
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
 
         try {
             const response = await fetch(`/api/users/${userId}`, {
@@ -176,12 +215,24 @@
             });
 
             if (!response.ok) throw new Error('Failed to delete user');
-            alert('Usuario eliminado correctamente');
+            Swal.fire({
+                icon: 'success',
+                title: '¡Eliminado!',
+                text: 'Usuario eliminado correctamente',
+                showConfirmButton: false,
+                timer: 1500
+            });
             loadUsers();
         } catch (error) {
             console.error('Error deleting user:', error);
-            alert('Error al eliminar usuario');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al eliminar usuario',
+                confirmButtonText: 'Aceptar'
+            });
         }
+        });
     };
 
     // Roles Management
@@ -201,7 +252,12 @@
             displayRoles(roles);
         } catch (error) {
             console.error('Error loading roles:', error);
-            alert('Error al cargar roles');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar roles',
+                confirmButtonText: 'Aceptar'
+            });
         }
     };
 
@@ -212,15 +268,15 @@
         roles.forEach(role => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="px-6 py-4 text-gray-900">${role.id}</td>
-                <td class="px-6 py-4 text-gray-900 font-medium">${role.name}</td>
-                <td class="px-6 py-4 text-gray-600">${role.description || '-'}</td>
-                <td class="px-6 py-4 text-gray-600 text-sm">${new Date(role.created_at).toLocaleDateString('es-ES')}</td>
+                <td class="px-6 py-4 text-white">${role.id}</td>
+                <td class="px-6 py-4 text-white font-medium">${role.name}</td>
+                <td class="px-6 py-4 text-white">${role.description || '-'}</td>
+                <td class="px-6 py-4 text-white text-sm">${new Date(role.created_at).toLocaleDateString('es-ES')}</td>
                 <td class="px-6 py-4 text-center space-x-2">
-                    <button onclick="editRole(${role.id})" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-semibold">
+                    <button onclick="editRole(${role.id})" class="px-3 py-1 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded hover:from-amber-700 hover:to-amber-800 text-xs font-semibold">
                         Editar
                     </button>
-                    <button onclick="deleteRole(${role.id})" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs font-semibold">
+                    <button onclick="deleteRole(${role.id})" class="px-3 py-1 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded hover:from-orange-700 hover:to-orange-800 text-xs font-semibold">
                         Eliminar
                     </button>
                 </td>
@@ -229,10 +285,13 @@
         });
     }
 
-    window.openRoleModal = function() {
-        document.getElementById('role-id').value = '';
-        document.getElementById('role-form').reset();
-        document.getElementById('role-modal-title').textContent = 'Crear Rol';
+    window.openRoleModal = function(mode = 'create') {
+        // Only reset if creating new role
+        if (mode === 'create') {
+            document.getElementById('role-id').value = '';
+            document.getElementById('role-form').reset();
+            document.getElementById('role-modal-title').textContent = 'Crear Rol';
+        }
         document.getElementById('role-form-error').classList.add('hidden');
         document.getElementById('role-modal').classList.remove('hidden');
     };
@@ -255,21 +314,36 @@
             const data = await response.json();
             const role = data.role || data.data;
 
+            // Populate fields
             document.getElementById('role-id').value = role.id;
             document.getElementById('role-name-input').value = role.name;
             document.getElementById('role-description-input').value = role.description || '';
             document.getElementById('role-modal-title').textContent = 'Editar Rol';
             document.getElementById('role-form-error').classList.add('hidden');
 
-            openRoleModal();
+            openRoleModal('edit');
         } catch (error) {
             console.error('Error loading role:', error);
-            alert('Error al cargar rol');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar rol: ' + error.message,
+                confirmButtonText: 'Aceptar'
+            });
         }
     };
 
     window.deleteRole = async function(roleId) {
-        if (!confirm('¿Estás seguro de que deseas eliminar este rol?')) return;
+        Swal.fire({
+            title: '¿Eliminar Rol?',
+            text: '¿Estás seguro de que deseas eliminar este rol?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: false
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
 
         try {
             const response = await fetch(`/api/roles/${roleId}`, {
@@ -281,12 +355,24 @@
             });
 
             if (!response.ok) throw new Error('Failed to delete role');
-            alert('Rol eliminado correctamente');
+            Swal.fire({
+                icon: 'success',
+                title: '¡Eliminado!',
+                text: 'Rol eliminado correctamente',
+                showConfirmButton: false,
+                timer: 1500
+            });
             loadRoles();
         } catch (error) {
             console.error('Error deleting role:', error);
-            alert('Error al eliminar rol');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al eliminar rol',
+                confirmButtonText: 'Aceptar'
+            });
         }
+        });
     };
 
     // Scroll utilities
@@ -363,7 +449,13 @@
                         throw new Error(errorData.message || 'Error al guardar usuario');
                     }
 
-                    alert(userId ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente');
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: userId ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
                     closeUserModal();
                     loadUsers();
                 } catch (error) {
@@ -411,7 +503,13 @@
                         throw new Error(errorData.message || 'Error al guardar rol');
                     }
 
-                    alert(roleId ? 'Rol actualizado correctamente' : 'Rol creado correctamente');
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: roleId ? 'Rol actualizado correctamente' : 'Rol creado correctamente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
                     closeRoleModal();
                     loadRoles();
                 } catch (error) {

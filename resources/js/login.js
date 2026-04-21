@@ -1,3 +1,7 @@
+// Import SweetAlert2
+import Swal from 'sweetalert2';
+import '../css/sweetalert.css';
+
 // Login specific functionality
 function initializeLogin() {
     const loginForm = document.getElementById('login-form');
@@ -8,21 +12,31 @@ function initializeLogin() {
     const submitBtn = document.getElementById('submit-btn');
     const btnText = document.getElementById('btn-text');
     const btnSpinner = document.getElementById('btn-spinner');
-    const errorAlert = document.getElementById('error-alert');
-    const errorMessage = document.getElementById('error-message');
-    const successAlert = document.getElementById('success-alert');
 
     function showError(message) {
-        if (!errorAlert) return;
-        errorMessage.textContent = message;
-        errorAlert.classList.remove('hidden');
-        if (successAlert) successAlert.classList.add('hidden');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Autenticación',
+            text: message,
+            confirmButtonText: 'Aceptar',
+            allowOutsideClick: false,
+        });
     }
 
     function showSuccess() {
-        if (!successAlert) return;
-        successAlert.classList.remove('hidden');
-        if (errorAlert) errorAlert.classList.add('hidden');
+        Swal.fire({
+            icon: 'success',
+            title: '¡Bienvenido!',
+            text: 'Redirigiendo al panel de control...',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            didOpen: async () => {
+                await Swal.showLoading();
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            }
+        });
     }
 
     function setButtonLoading(isLoading) {
@@ -72,10 +86,6 @@ function initializeLogin() {
             localStorage.setItem('user', JSON.stringify(data.user));
 
             showSuccess();
-
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 1200);
 
         } catch (error) {
             console.error('Error:', error);
