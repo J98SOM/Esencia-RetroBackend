@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "bash start.sh"
+startCommand = "composer install --no-dev && php artisan migrate:reset --force || true && php artisan migrate:fresh --seed --force && php artisan serve --host 0.0.0.0 --port $PORT"
 restartPolicyMaxRetries = 5
 healthchecks = { enabled = false }
 
