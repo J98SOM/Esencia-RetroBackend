@@ -1,20 +1,13 @@
-FROM php:8.3-cli as vendor
+FROM dunglas/frankenphp:latest-alpine
 
-RUN apt-get update && apt-get install -y git unzip
+RUN apk add --no-cache composer mysql-client
 
 WORKDIR /app
 
 COPY composer.json composer.lock ./
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
-    composer install --no-dev --no-scripts --no-progress --prefer-dist
 
-FROM dunglas/frankenphp:latest-alpine
+RUN composer install --no-dev --no-interaction --prefer-dist
 
-WORKDIR /app
-
-RUN apk add --no-cache mysql-client
-
-COPY --from=vendor /app/vendor ./vendor
 COPY . .
 
 RUN php artisan optimize && \
@@ -22,9 +15,5 @@ RUN php artisan optimize && \
 
 EXPOSE 8000
 
-RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'php artisan migrate --seed --force' >> /entrypoint.sh && \
-    echo 'exec frankenphp run --addr 0.0.0.0:8000' >> /entrypoint.sh && \
-    chmod +x /entrypoint.sh
+CMD ["sh", "-c", "php artisan migrate:reset --force || true && php artisan migrate:fresh --seed --force && php artisan serve --host=0.0.0.0 --port=8000"]
 
-ENTRYPOINT ["/entrypoint.sh"]

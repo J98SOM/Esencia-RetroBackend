@@ -1,8 +1,8 @@
 [build]
-builder = "nixpacks"
+builder = "dockerfile"
 
 [deploy]
-startCommand = "composer install --no-dev && php artisan migrate:reset --force || true && php artisan migrate:fresh --seed --force && php artisan serve --host 0.0.0.0 --port $PORT"
+startCommand = "php artisan serve --host 0.0.0.0 --port $PORT"
 restartPolicyMaxRetries = 5
 healthchecks = { enabled = false }
 
