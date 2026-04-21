@@ -15,9 +15,13 @@ if [ ! -d "vendor" ]; then
     composer install --no-dev --no-interaction
 fi
 
-# Run database migrations
-echo "🗄️  Running migrations..."
-php artisan migrate --seed --force
+# Rollback all migrations to start fresh
+echo "⏮️  Rolling back all migrations..."
+php artisan migrate:reset --force || true
+
+# Run database migrations fresh with seed
+echo "🗄️  Running fresh migrations with seed..."
+php artisan migrate:fresh --seed --force
 
 # Optimize application
 echo "⚡ Optimizing application..."
