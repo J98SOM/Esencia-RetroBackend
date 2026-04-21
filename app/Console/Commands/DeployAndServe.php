@@ -17,10 +17,9 @@ class DeployAndServe extends Command
         // Wait for database connection
         $this->waitForDatabase();
 
-        // Run migrations
+        // Run migrations (only pending migrations, never fresh in production)
         $this->info('🗄️  Running migrations...');
-        $this->call('migrate:reset', ['--force' => true, '--no-interaction' => true]);
-        $this->call('migrate:fresh', ['--seed' => true, '--force' => true, '--no-interaction' => true]);
+        $this->call('migrate', ['--force' => true, '--no-interaction' => true]);
 
         // Cache configuration
         $this->info('⚡ Optimizing...');
