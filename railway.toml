@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "bash start.sh"
+restartPolicyMaxRetries = 5
+healthchecks = { enabled = false }
+
+
