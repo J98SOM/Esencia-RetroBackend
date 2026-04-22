@@ -71,7 +71,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        // For TransientToken (SPA usage), no deletion needed
+        // For PersonalAccessToken, delete it from database
+        $token = $request->user()->currentAccessToken();
+        
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
 
         return response()->json([
             'message' => 'Logged out successfully',

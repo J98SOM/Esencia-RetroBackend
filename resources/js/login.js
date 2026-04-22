@@ -2,7 +2,10 @@
 import Swal from 'sweetalert2';
 import '../css/sweetalert.css';
 
-// Login specific functionality
+// Expose Swal globally
+window.Swal = Swal;
+
+// Login specific functionality - only runs if form exists
 function initializeLogin() {
     const loginForm = document.getElementById('login-form');
     if (!loginForm) return; // Exit if not on login page
@@ -12,6 +15,27 @@ function initializeLogin() {
     const submitBtn = document.getElementById('submit-btn');
     const btnText = document.getElementById('btn-text');
     const btnSpinner = document.getElementById('btn-spinner');
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const eyeIcon = document.getElementById('eye-icon');
+    const eyeOffIcon = document.getElementById('eye-off-icon');
+
+    // Toggle password visibility
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isPassword = passwordInput.type === 'password';
+            
+            if (isPassword) {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeOffIcon.classList.add('hidden');
+            }
+        });
+    }
 
     function showError(message) {
         Swal.fire({
@@ -96,7 +120,7 @@ function initializeLogin() {
     });
 }
 
-// Initialize immediately and on DOMContentLoaded
+// Initialize on DOMContentLoaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeLogin);
 } else {
