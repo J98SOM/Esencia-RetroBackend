@@ -14,6 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User CRUD routes
     Route::get('/users', [AuthController::class, 'index']);
+    Route::post('/users', [AuthController::class, 'store']);
     Route::get('/users/{user}', [AuthController::class, 'show']);
     Route::put('/users/{user}', [AuthController::class, 'update']);
     Route::delete('/users/{user}', [AuthController::class, 'destroy']);
