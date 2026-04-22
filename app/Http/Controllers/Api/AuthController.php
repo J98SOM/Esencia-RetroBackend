@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\StoreUserRequest;
 use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -20,11 +21,13 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
+        $userRole = \App\Models\Role::where('name', 'user')->first();
+
         $user = User::create([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
             'password' => $request->validated('password'),
-            'role' => $request->validated('role', 'user'),
+            'role_id' => $userRole?->id,
         ]);
 
         return response()->json([
@@ -82,6 +85,24 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logged out successfully',
         ], 200);
+    }
+
+    /**
+     * Create a new user (admin endpoint)
+     */
+    public function store(StoreUserRequest $request): JsonResponse
+    {
+        $user = User::create([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('email'),
+            'password' => Hash::make($request->validated('password')),
+            'role_id' => $request->validated('role_id'),
+        ]);
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => new UserResource($user),
+        ], 201);
     }
 
     /**

@@ -74,8 +74,8 @@ import '../css/sweetalert.css';
         tbody.innerHTML = '';
 
         users.forEach(user => {
-            const roleId = user.role_id || 1;
-            const roleName = rolesMap[roleId] || 'Usuario';
+            const roleId = user.role_id;
+            const roleName = roleId && rolesMap[roleId] ? rolesMap[roleId] : 'Usuario';
             const roleBadgeClass = roleName.toLowerCase() === 'admin' ? 'badge-admin' : 
                                   roleName.toLowerCase() === 'moderator' ? 'badge-moderator' : 'badge-user';
             
