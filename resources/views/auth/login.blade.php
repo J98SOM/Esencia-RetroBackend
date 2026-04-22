@@ -1,32 +1,25 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Iniciar Sesión - {{ config('app.name', 'Laravel') }}</title>
-    
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/css/login.css', 'resources/js/app.js', 'resources/js/login.js'])
-    @endif
-</head>
-<body class="font-sans antialiased bg-gradient-to-br from-gray-950 to-gray-900 min-h-screen">
-    <div class="flex flex-col min-h-screen">
-        <!-- Header -->
-        <header class="bg-gray-900 shadow-lg">
-            <div class="px-6 lg:px-8 py-4 flex items-center justify-between">
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-amber-500 bg-clip-text text-transparent">
-                    Esencia
-                </h1>
-            </div>
-        </header>
+@extends('layouts.public')
 
-        <!-- Main Content -->
-        <main class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-            <div class="w-full max-w-md">
-                <!-- Alert Messages -->
-                <div id="error-alert" class="hidden mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-                    <p id="error-message"></p>
-                </div>
+@section('title', 'Iniciar Sesión')
+
+@section('content')
+<div class="flex flex-col min-h-screen bg-gradient-to-br from-gray-950 to-gray-900">
+    <!-- Header -->
+    <header class="bg-gray-900 shadow-lg">
+        <div class="px-6 lg:px-8 py-4 flex items-center justify-between">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-400 to-amber-500 bg-clip-text text-transparent">
+                Esencia
+            </h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+        <div class="w-full max-w-md">
+            <!-- Alert Messages -->
+            <div id="error-alert" class="hidden mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                <p id="error-message"></p>
+            </div>
 
                 <div id="success-alert" class="hidden mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-center gap-2">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -118,8 +111,5 @@
             </div>
         </main>
     </div>
-
-
-</body>
-</html>
+@endsection
 

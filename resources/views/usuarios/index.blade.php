@@ -1,49 +1,41 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gestión de Usuarios - {{ config('app.name', 'Laravel') }}</title>
-    
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/css/sidebar.css', 'resources/css/usuarios-index.css', 'resources/js/app.js', 'resources/js/usuarios-index.js'])
-    @endif
-</head>
-<body class="font-sans antialiased">
-    <x-sidebar title="Gestión del Sistema">
-        <x-slot name="navigation">
-        <a href="/dashboard" class="block px-4 py-3 rounded-lg text-white/70 hover:text-white hover:bg-surface-container font-semibold transition">
-            <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4"/>
-            </svg>
-            <span>Panel de Control</span>
-        </a>
-        <a href="/usuarios" class="block px-4 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition">
-            <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM15 20H9m6 0h6M9 20H3m6 0a9 9 0 1118 0m-9 0a4.5 4.5 0 100-9 4.5 4.5 0 000 9z"/>
-            </svg>
-            <span>Gestión de Usuarios</span>
-        </a>
-    </x-slot>
+@extends('layouts.app')
 
+@section('title', 'Gestión de Usuarios')
+
+@section('navigation')
+    <a href="{{ route('dashboard') }}" class="block px-4 py-3 rounded-lg text-white/70 hover:text-white hover:bg-surface-container font-semibold transition">
+        <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4"/>
+        </svg>
+        <span>Panel de Control</span>
+    </a>
+    <a href="{{ route('usuarios.index') }}" class="block px-4 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition">
+        <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM15 20H9m6 0h6M9 20H3m6 0a9 9 0 1118 0m-9 0a4.5 4.5 0 100-9 4.5 4.5 0 000 9z"/>
+        </svg>
+        <span>Gestión de Usuarios</span>
+    </a>
+@endsection
+
+@section('content')
     <!-- Tabs Navigation -->
-        <div class="bg-surface-container border-b border-surface-container-high sticky top-0 z-20 shadow-md">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex gap-8">
-                    <button class="tab-button active" onclick="switchTab('usuarios')">
-                        Gestión de Usuarios
-                    </button>
-                    <button class="tab-button" onclick="switchTab('roles')">
-                        Gestión de Roles
-                    </button>
-                </div>
+    <div class="bg-surface-container border-b border-surface-container-high sticky top-0 z-20 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex gap-8">
+                <button class="tab-button active" onclick="switchTab('usuarios')">
+                    Gestión de Usuarios
+                </button>
+                <button class="tab-button" onclick="switchTab('roles')">
+                    Gestión de Roles
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Main Content -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- USUARIOS TAB -->
-            <div id="usuarios-tab" class="tab-content active">
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- USUARIOS TAB -->
+        <div id="usuarios-tab" class="tab-content active">
                 <!-- Action Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                     <!-- Create User Card -->
@@ -261,7 +253,5 @@
                 </form>
             </div>
         </div>
-    </x-sidebar>
-    @stack('scripts')
-</body>
-</html>
+    </div>
+@endsection
