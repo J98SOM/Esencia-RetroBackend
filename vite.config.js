@@ -8,6 +8,10 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/css/dashboard.css',      
+                'resources/css/usuarios-index.css',  
+                'resources/css/sweetalert.css',
+                'resources/css/sidebar.css',
                 'resources/js/login.js',
             ],
             refresh: true,
