@@ -1,6 +1,10 @@
+// Import styles
+import '../css/app.css';
+import '../css/login.css';
+import '../css/sweetalert.css';
+
 // Import SweetAlert2
 import Swal from 'sweetalert2';
-import '../css/sweetalert.css';
 
 // Expose Swal globally
 window.Swal = Swal;

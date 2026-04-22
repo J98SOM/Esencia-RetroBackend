@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', config('app.name')) - {{ config('app.name', 'Laravel') }}</title>
     
-    @vite(['resources/css/app.css', 'resources/css/login.css', 'resources/js/login.js'])
+    @vite(['resources/js/login.js'])
 
     @stack('styles')
 </head>
