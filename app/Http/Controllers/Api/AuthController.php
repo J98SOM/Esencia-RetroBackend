@@ -65,8 +65,13 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if ($user) {
+            $user->loadMissing('role');
+        }
+
         return response()->json([
-            'user' => new UserResource($request->user()),
+            'user' => new UserResource($user),
         ], 200);
     }
 
@@ -79,8 +84,14 @@ class AuthController extends Controller
         // For PersonalAccessToken, delete it from database
         $token = $request->user()->currentAccessToken();
 
-        if ($token && method_exists($token, 'delete')) {
-            $token->delete();
+        if ($token) {
+            try {
+                if (method_exists($token, 'delete')) {
+                    $token->delete();
+                }
+            } catch (\Throwable $e) {
+                // Ignore any deletion errors for transient tokens
+            }
         }
 
         return response()->json([

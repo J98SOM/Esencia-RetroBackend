@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MesaController;
+use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,4 +30,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Mesa CRUD API
     Route::apiResource('/mesas', MesaController::class)->names('api.mesas');
+    // Productos CRUD API
+    Route::apiResource('/productos', ProductoController::class)->names('api.productos');
 });

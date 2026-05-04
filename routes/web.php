@@ -22,3 +22,7 @@ Route::get('/usuarios', function () {
 
 // Mesas CRUD (Web) - Protected by auth
 Route::middleware('auth')->resource('mesas', MesaController::class);
+// Productos web view
+Route::middleware('auth')->get('/productos', function () {
+    return view('productos.index');
+})->name('productos.index');
