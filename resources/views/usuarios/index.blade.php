@@ -204,7 +204,7 @@
                     <div id="user-form-error" class="hidden p-4 bg-error-container border border-error text-on-error-container rounded-lg text-sm"></div>
 
                     <div class="flex gap-3 pt-4">
-                        <button type="submit" class="btn-primary flex-1 text-white font-semibold py-2 rounded-lg bg-primary hover:bg-primary-dark transition">
+                        <button type="submit" class="flex-1 text-white font-semibold py-2 rounded-lg bg-amber-600 hover:bg-amber-700 transition">
                             Guardar
                         </button>
                         <button type="button" onclick="closeUserModal()" class="flex-1 px-4 py-2 border border-surface-container-high text-white/70 font-semibold rounded-lg hover:bg-surface-container-highest hover:text-white">
@@ -243,7 +243,7 @@
                     <div id="role-form-error" class="hidden p-4 bg-error-container border border-error text-on-error-container rounded-lg text-sm"></div>
 
                     <div class="flex gap-3 pt-4">
-                        <button type="submit" class="btn-primary flex-1 text-white font-semibold py-2 rounded-lg bg-primary hover:bg-primary-dark transition">
+                        <button type="submit" class="flex-1 text-white font-semibold py-2 rounded-lg bg-amber-600 hover:bg-amber-700 transition">
                             Guardar
                         </button>
                         <button type="button" onclick="closeRoleModal()" class="flex-1 px-4 py-2 border border-surface-container-high text-white/70 font-semibold rounded-lg hover:bg-surface-container-highest hover:text-white">

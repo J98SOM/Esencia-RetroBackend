@@ -40,6 +40,14 @@
             <!-- Navigation Links -->
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                 {{ $navigation ?? '' }}
+
+                @php $mesasActive = request()->routeIs('mesas.*'); @endphp
+                <a href="{{ route('mesas.index') }}" class="block px-4 py-3 rounded-lg {{ $mesasActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">
+                    <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V8zm5 4h4"/>
+                    </svg>
+                    <span>Gestión de Mesas</span>
+                </a>
             </nav>
 
             <!-- User Profile Section -->

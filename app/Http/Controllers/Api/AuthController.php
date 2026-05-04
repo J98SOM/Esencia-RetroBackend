@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\StoreUserRequest;
 use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Http\Resources\UserResource;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $userRole = \App\Models\Role::where('name', 'user')->first();
+        $userRole = Role::where('name', 'user')->first();
 
         $user = User::create([
             'name' => $request->validated('name'),
@@ -77,7 +78,7 @@ class AuthController extends Controller
         // For TransientToken (SPA usage), no deletion needed
         // For PersonalAccessToken, delete it from database
         $token = $request->user()->currentAccessToken();
-        
+
         if ($token && method_exists($token, 'delete')) {
             $token->delete();
         }
@@ -110,7 +111,9 @@ class AuthController extends Controller
      */
     public function index(): JsonResponse
     {
-        $users = User::with('role')->get();
+        $users = User::with('role')
+            ->select('id', 'name', 'email', 'role_id', 'created_at')
+            ->get();
 
         return response()->json([
             'users' => UserResource::collection($users),

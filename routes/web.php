@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MesaController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -18,3 +19,6 @@ Route::get('/dashboard', function () {
 Route::get('/usuarios', function () {
     return view('usuarios.index');
 })->name('usuarios.index');
+
+// Mesas CRUD (Web) - Protected by auth
+Route::middleware('auth')->resource('mesas', MesaController::class);

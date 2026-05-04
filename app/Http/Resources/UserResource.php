@@ -19,7 +19,10 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role_id' => $this->role_id,
-            'role' => null, // Role will be null until we can properly load it
+            'role' => $this->when($this->role, fn () => [
+                'id' => $this->role->id,
+                'name' => $this->role->name,
+            ]),
             'email_verified_at' => $this->email_verified_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

@@ -28,24 +28,7 @@ import '../css/sweetalert.css';
     // Users Management
     window.loadUsers = async function() {
         try {
-            // Load roles first to populate rolesMap
-            const rolesResponse = await fetch('/api/roles', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!rolesResponse.ok) throw new Error('Failed to fetch roles');
-            const rolesData = await rolesResponse.json();
-            rolesMap = {};
-            const roles = rolesData.roles || rolesData.data || [];
-            roles.forEach(role => {
-                rolesMap[role.id] = role.name;
-            });
-
-            // Load users
+            // Load users with role relationship (eager loaded from server)
             const usersResponse = await fetch('/api/users', {
                 method: 'GET',
                 headers: {
@@ -74,8 +57,7 @@ import '../css/sweetalert.css';
         tbody.innerHTML = '';
 
         users.forEach(user => {
-            const roleId = user.role_id;
-            const roleName = roleId && rolesMap[roleId] ? rolesMap[roleId] : 'Usuario';
+            const roleName = user.role?.name || 'Usuario';
             const roleBadgeClass = roleName.toLowerCase() === 'admin' ? 'badge-admin' : 
                                   roleName.toLowerCase() === 'moderator' ? 'badge-moderator' : 'badge-user';
             
