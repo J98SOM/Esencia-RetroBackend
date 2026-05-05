@@ -22,6 +22,7 @@ class InventarioController extends Controller
             'stock_inicial' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'unidad_medida' => 'nullable|string|max:50',
+            'descuento_inventario' => 'nullable|numeric|min:0',
         ]);
 
         $inventario = Inventario::create($data);
@@ -42,6 +43,7 @@ class InventarioController extends Controller
             'stock_inicial' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'unidad_medida' => 'nullable|string|max:50',
+            'descuento_inventario' => 'nullable|numeric|min:0',
         ]);
 
         $inventario->update($data);

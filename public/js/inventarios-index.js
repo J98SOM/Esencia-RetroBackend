@@ -65,7 +65,7 @@ async function loadInventarios() {
         const tbody = document.getElementById('inventarios-tbody');
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = '<tr class="border-t"><td colspan="7" class="p-4">No hay items.</td></tr>';
+            tbody.innerHTML = '<tr class="border-t"><td colspan="8" class="p-4">No hay items.</td></tr>';
             return;
         }
 
@@ -79,6 +79,7 @@ async function loadInventarios() {
                 <td class="px-6 py-4">${item.stock_inicial}</td>
                 <td class="px-6 py-4">${item.stock_minimo}</td>
                 <td class="px-6 py-4">${item.unidad_medida ?? ''}</td>
+                <td class="px-6 py-4">${item.descuento_inventario ?? ''}</td>
                 <td class="px-6 py-4">
                     <button onclick="editInventario(${item.id})" class="mr-2 text-white/80">Editar</button>
                     <button onclick="deleteInventario(${item.id})" class="text-red-400">Eliminar</button>
@@ -102,6 +103,7 @@ function openInventarioModal() {
     document.getElementById('inventario-stock-inicial').value = 0;
     document.getElementById('inventario-stock-minimo').value = 0;
     document.getElementById('inventario-unidad').value = '';
+    document.getElementById('inventario-descuento').value = 1;
     document.getElementById('inventario-producto-name').value = '';
     document.getElementById('inventario-producto-id').value = '';
 }
@@ -123,6 +125,7 @@ async function editInventario(id) {
         document.getElementById('inventario-stock-inicial').value = item.stock_inicial;
         document.getElementById('inventario-stock-minimo').value = item.stock_minimo;
         document.getElementById('inventario-unidad').value = item.unidad_medida || '';
+        document.getElementById('inventario-descuento').value = item.descuento_inventario ?? 1;
         document.getElementById('inventario-producto-id').value = item.producto ? item.producto.id : '';
         document.getElementById('inventario-producto-name').value = item.producto ? item.producto.nombre : '';
         const modal = document.getElementById('inventario-modal');
@@ -161,10 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const stock_inicial = parseInt(document.getElementById('inventario-stock-inicial').value, 10) || 0;
         const stock_minimo = parseInt(document.getElementById('inventario-stock-minimo').value, 10) || 0;
         const unidad_medida = document.getElementById('inventario-unidad').value.trim();
+        const descuento = parseFloat(document.getElementById('inventario-descuento').value) || 0;
 
         try {
                 const productoId = document.getElementById('inventario-producto-id').value || null;
-                const payload = { nombre, producto_id: productoId, stock_inicial, stock_minimo, unidad_medida };
+                const payload = { nombre, producto_id: productoId, stock_inicial, stock_minimo, unidad_medida, descuento_inventario: descuento };
             const opt = { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() }, credentials: 'same-origin', body: JSON.stringify(payload) };
             const url = id ? `${inventariosApi}/${id}` : inventariosApi;
             const res = await fetch(url, opt);

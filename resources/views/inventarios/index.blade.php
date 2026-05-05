@@ -55,13 +55,14 @@
                         <th class="px-6 py-3 text-left font-semibold text-white">Producto</th>
                         <th class="px-6 py-3 text-left font-semibold text-white">Stock Inicial</th>
                         <th class="px-6 py-3 text-left font-semibold text-white">Stock Mínimo</th>
-                        <th class="px-6 py-3 text-left font-semibold text-white">Unidad</th>
-                        <th class="px-6 py-3 text-left font-semibold text-white">Acciones</th>
+                                <th class="px-6 py-3 text-left font-semibold text-white">Unidad</th>
+                                <th class="px-6 py-3 text-left font-semibold text-white">Descuento</th>
+                                <th class="px-6 py-3 text-left font-semibold text-white">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="inventarios-tbody">
                     <tr class="border-t border-surface-container/30">
-                        <td colspan="7" class="px-6 py-4">Cargando...</td>
+                        <td colspan="8" class="px-6 py-4">Cargando...</td>
                     </tr>
                 </tbody>
             </table>
@@ -87,7 +88,7 @@
                 <input type="text" id="inventario-nombre" placeholder="Nombre del ítem" class="w-full px-4 py-2 bg-surface-container border border-surface-container-high text-white placeholder-white/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required />
             </div>
 
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-4 gap-3">
                 <div>
                     <label class="block text-sm font-semibold text-white mb-2">Stock Inicial</label>
                     <input type="number" id="inventario-stock-inicial" min="0" value="0" class="w-full px-4 py-2 bg-surface-container border border-surface-container-high text-white rounded-lg" required />
@@ -99,6 +100,10 @@
                 <div>
                     <label class="block text-sm font-semibold text-white mb-2">Unidad</label>
                     <input type="text" id="inventario-unidad" placeholder="pcs, kg" class="w-full px-4 py-2 bg-surface-container border border-surface-container-high text-white rounded-lg" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-white mb-2">Descuento</label>
+                    <input type="number" id="inventario-descuento" min="0" step="any" value="1" class="w-full px-4 py-2 bg-surface-container border border-surface-container-high text-white rounded-lg" />
                 </div>
             </div>
 
