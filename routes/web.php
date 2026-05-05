@@ -26,3 +26,6 @@ Route::middleware('auth')->resource('mesas', MesaController::class);
 Route::middleware('auth')->get('/productos', function () {
     return view('productos.index');
 })->name('productos.index');
+
+// Inventarios web view
+Route::middleware('auth')->get('/inventarios', [\App\Http\Controllers\InventarioController::class, 'index'])->name('inventarios.index');
