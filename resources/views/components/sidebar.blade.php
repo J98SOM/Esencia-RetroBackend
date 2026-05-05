@@ -39,22 +39,66 @@
 
             <!-- Navigation Links -->
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                {{ $navigation ?? '' }}
+                @php
+                    $dashboardActive = request()->routeIs('dashboard');
+                    $usuariosActive = request()->routeIs('usuarios.*');
+                    $mesasActive = request()->routeIs('mesas.*');
+                    $productosActive = request()->routeIs('productos.*');
+                @endphp
 
-                @php $mesasActive = request()->routeIs('mesas.*'); @endphp
-                <a href="{{ route('mesas.index') }}" class="block px-4 py-3 rounded-lg {{ $mesasActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">
+                {{-- Default links always shown --}}
+                <a href="{{ route('dashboard') }}" class="block px-4 py-3 rounded-lg {{ $dashboardActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">
+                    <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4"/>
+                    </svg>
+                    <span>Panel de Control</span>
+                </a>
+
+                <a href="{{ route('usuarios.index') }}" class="block mt-2 px-4 py-3 rounded-lg {{ $usuariosActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">
+                    <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.79.707 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span>Gestión de Usuarios</span>
+                </a>
+
+                <a href="{{ route('mesas.index') }}" class="block mt-2 px-4 py-3 rounded-lg {{ $mesasActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">
                     <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V8zm5 4h4"/>
                     </svg>
                     <span>Gestión de Mesas</span>
                 </a>
-                @php $productosActive = request()->routeIs('productos.*'); @endphp
+
                 <a href="{{ route('productos.index') }}" class="block mt-2 px-4 py-3 rounded-lg {{ $productosActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">
                     <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V6a4 4 0 10-8 0v5M3 11h18l-1 9a2 2 0 01-2 2H6a2 2 0 01-2-2L3 11z"/>
                     </svg>
                     <span>Gestión de Productos</span>
                 </a>
+
+                {{-- If a view provides extra navigation, append it below the defaults but strip duplicates --}}
+                @if (trim($navigation ?? '') !== '')
+                    @php
+                        $navHtml = $navigation;
+                        $defaults = [
+                            route('dashboard'),
+                            route('usuarios.index'),
+                            route('mesas.index'),
+                            route('productos.index'),
+                        ];
+
+                        foreach ($defaults as $dUrl) {
+                            $dUrlQuoted = preg_quote($dUrl, '~');
+                            $pattern = "~<a[^>]*href=(?:\"|')" . $dUrlQuoted . "(?:\"|')[^>]*>.*?</a>~is";
+                            $navHtml = preg_replace($pattern, '', $navHtml);
+                        }
+                    @endphp
+
+                    @if (trim($navHtml) !== '')
+                        <div class="mt-4 border-t border-surface-container pt-4">
+                            {!! $navHtml !!}
+                        </div>
+                    @endif
+                @endif
             </nav>
 
             <!-- User Profile Section -->
