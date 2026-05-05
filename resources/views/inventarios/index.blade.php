@@ -52,6 +52,7 @@
                     <tr>
                         <th class="px-6 py-3 text-left font-semibold text-white">#ID</th>
                         <th class="px-6 py-3 text-left font-semibold text-white">Nombre</th>
+                        <th class="px-6 py-3 text-left font-semibold text-white">Producto</th>
                         <th class="px-6 py-3 text-left font-semibold text-white">Stock Inicial</th>
                         <th class="px-6 py-3 text-left font-semibold text-white">Stock Mínimo</th>
                         <th class="px-6 py-3 text-left font-semibold text-white">Unidad</th>
@@ -60,7 +61,7 @@
                 </thead>
                 <tbody id="inventarios-tbody">
                     <tr class="border-t border-surface-container/30">
-                        <td colspan="6" class="px-6 py-4">Cargando...</td>
+                        <td colspan="7" class="px-6 py-4">Cargando...</td>
                     </tr>
                 </tbody>
             </table>
@@ -99,6 +100,15 @@
                     <label class="block text-sm font-semibold text-white mb-2">Unidad</label>
                     <input type="text" id="inventario-unidad" placeholder="pcs, kg" class="w-full px-4 py-2 bg-surface-container border border-surface-container-high text-white rounded-lg" />
                 </div>
+            </div>
+
+            <div class="relative">
+                <label class="block text-sm font-semibold text-white mb-2">Producto (opcional)</label>
+                <input id="inventario-producto-name" autocomplete="off" placeholder="Escribe para buscar..." class="w-full px-4 py-2 bg-surface-container border border-surface-container-high text-white rounded-lg" />
+                <input type="hidden" id="inventario-producto-id">
+
+                <!-- Custom dropdown for products (scrollable) -->
+                <div id="productos-dropdown" class="hidden absolute left-0 right-0 mt-1 bg-surface-container-low border border-surface-container rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto"></div>
             </div>
 
             <div id="inventario-form-error" class="hidden p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm"></div>

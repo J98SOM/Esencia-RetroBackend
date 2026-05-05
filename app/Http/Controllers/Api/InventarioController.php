@@ -11,13 +11,14 @@ class InventarioController extends Controller
 {
     public function index()
     {
-        return Inventario::orderBy('id', 'desc')->get();
+        return Inventario::with('producto')->orderBy('id', 'desc')->get();
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:255|unique:inventarios,nombre',
+            'producto_id' => 'nullable|exists:productos,id',
             'stock_inicial' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'unidad_medida' => 'nullable|string|max:50',
@@ -30,13 +31,14 @@ class InventarioController extends Controller
 
     public function show(Inventario $inventario)
     {
-        return $inventario;
+        return $inventario->load('producto');
     }
 
     public function update(Request $request, Inventario $inventario)
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:255|unique:inventarios,nombre,' . $inventario->id,
+            'producto_id' => 'nullable|exists:productos,id',
             'stock_inicial' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'unidad_medida' => 'nullable|string|max:50',
