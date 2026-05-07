@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\InventarioController;
 use App\Http\Controllers\Api\MesaController;
 use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\RoleController;
-use App\Http\Controllers\Api\InventarioController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);

@@ -45,6 +45,8 @@
                     $mesasActive = request()->routeIs('mesas.*');
                     $productosActive = request()->routeIs('productos.*');
                     $inventariosActive = request()->routeIs('inventarios.*');
+                    // Alquiler view link active check (matches /alquiler and subpaths)
+                    $alquilerActive = request()->is('alquiler*');
                 @endphp
 
                 {{-- Default links always shown --}}
@@ -81,6 +83,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M7 7v10a2 2 0 002 2h6a2 2 0 002-2V7"/>
                     </svg>
                     <span>Gestion de Inventario</span>
+                </a>
+
+                <a href="{{ route('alquiler') }}" class="block mt-2 px-4 py-3 rounded-lg {{ $alquilerActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">
+                    <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <span>Alquiler de Salón</span>
                 </a>
 
                 {{-- If a view provides extra navigation, append it below the defaults but strip duplicates --}}

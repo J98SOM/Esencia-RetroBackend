@@ -12,6 +12,8 @@ export default defineConfig({
                 'resources/css/usuarios-index.css',  
                 'resources/css/sweetalert.css',
                 'resources/css/sidebar.css',
+                'resources/css/pages/alquiler.css',
+                'resources/js/pages/alquiler.js',
                 'resources/js/login.js',
             ],
             refresh: true,

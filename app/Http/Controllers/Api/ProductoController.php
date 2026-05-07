@@ -43,6 +43,7 @@ class ProductoController extends Controller
             return response()->json($producto, 201);
         } catch (\Exception $e) {
             Log::error('Producto store error: '.$e->getMessage());
+
             return response()->json(['message' => 'Error al guardar producto'], 500);
         }
     }
@@ -85,6 +86,7 @@ class ProductoController extends Controller
             return response()->json($producto);
         } catch (\Exception $e) {
             Log::error('Producto update error: '.$e->getMessage());
+
             return response()->json(['message' => 'Error al actualizar producto'], 500);
         }
     }
@@ -96,9 +98,11 @@ class ProductoController extends Controller
                 $this->deleteFromCloudinary($producto->imagen_public_id);
             }
             $producto->delete();
+
             return response()->json(['message' => 'Producto eliminado']);
         } catch (\Exception $e) {
             Log::error('Producto destroy error: '.$e->getMessage());
+
             return response()->json(['message' => 'Error al eliminar producto'], 500);
         }
     }
@@ -106,14 +110,14 @@ class ProductoController extends Controller
     protected function uploadToCloudinary($file)
     {
         $cloudinary = env('CLOUDINARY_URL');
-        if (!$cloudinary) {
+        if (! $cloudinary) {
             return null;
         }
 
         // CLOUDINARY_URL format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
         try {
             $parts = parse_url($cloudinary);
-            if (!$parts || !isset($parts['user']) || !isset($parts['pass']) || !isset($parts['host'])) {
+            if (! $parts || ! isset($parts['user']) || ! isset($parts['pass']) || ! isset($parts['host'])) {
                 return null;
             }
 
@@ -146,13 +150,16 @@ class ProductoController extends Controller
 
             if ($err) {
                 Log::error('Cloudinary upload curl error: '.$err);
+
                 return null;
             }
 
             $decoded = json_decode($result, true);
+
             return $decoded;
         } catch (\Exception $e) {
             Log::error('Cloudinary upload error: '.$e->getMessage());
+
             return null;
         }
     }
@@ -160,12 +167,12 @@ class ProductoController extends Controller
     protected function deleteFromCloudinary($publicId)
     {
         $cloudinary = env('CLOUDINARY_URL');
-        if (!$cloudinary) {
+        if (! $cloudinary) {
             return false;
         }
 
         $parts = parse_url($cloudinary);
-        if (!$parts || !isset($parts['user']) || !isset($parts['pass']) || !isset($parts['host'])) {
+        if (! $parts || ! isset($parts['user']) || ! isset($parts['pass']) || ! isset($parts['host'])) {
             return false;
         }
 
@@ -188,6 +195,7 @@ class ProductoController extends Controller
 
         if ($err) {
             Log::error('Cloudinary delete curl error: '.$err);
+
             return false;
         }
 

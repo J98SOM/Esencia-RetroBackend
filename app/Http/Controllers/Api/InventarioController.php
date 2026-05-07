@@ -38,7 +38,7 @@ class InventarioController extends Controller
     public function update(Request $request, Inventario $inventario)
     {
         $data = $request->validate([
-            'nombre' => 'required|string|max:255|unique:inventarios,nombre,' . $inventario->id,
+            'nombre' => 'required|string|max:255|unique:inventarios,nombre,'.$inventario->id,
             'producto_id' => 'nullable|exists:productos,id',
             'stock_inicial' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
@@ -54,6 +54,7 @@ class InventarioController extends Controller
     public function destroy(Inventario $inventario)
     {
         $inventario->delete();
+
         return response()->noContent();
     }
 }

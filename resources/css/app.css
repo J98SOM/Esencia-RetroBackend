@@ -58,3 +58,20 @@
     --color-inverse-surface: #e4e2de;
     --color-inverse-on-surface: #000000;
 }
+
+@media print {
+    /* Ocultar elementos que no queremos imprimir */
+    .no-print, 
+    #sidebar, 
+    footer, 
+    .modal-overlay,
+    .btn-acciones-container {
+        display: none !important;
+    }
+
+    /* Ajustar el contenedor principal para que ocupe toda la hoja */
+    main#main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+}
