@@ -12,13 +12,21 @@ let activeRows = 5;
 // Inicialización
 // ----------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-    // Fecha de hoy
+    // Fecha de hoy (solo si el campo está vacío)
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('factura-fecha').value = today;
+    const fechaEl = document.getElementById('factura-fecha');
+    if (fechaEl && (!fechaEl.value || fechaEl.value === '')) {
+        fechaEl.value = today;
+    }
 
     // Número de factura automático: el valor lo proporciona el servidor en la vista (readonly)
 
-    // Aplica la cantidad de filas por defecto
+    // Leer selector de cantidad de filas (permite que el servidor prefije la cantidad al editar)
+    const itemsSelector = document.getElementById('items-count-selector');
+    if (itemsSelector) {
+        activeRows = parseInt(itemsSelector.value, 10) || activeRows;
+    }
+    // Aplica la cantidad de filas
     aplicarCantidadFilas(activeRows);
 
     // Inicializar display del medio de pago si existe
@@ -224,9 +232,17 @@ function guardarFactura() {
         invoice.total += cant * precio;
     });
 
+    // Determine if editing: prefer hidden input, fallback to global flag
+    const facturaIdEl = document.getElementById('factura-id');
+    const isEditing = (facturaIdEl && facturaIdEl.dataset.editing === '1') || window.ALQUILER_EDITING === true || !!window.ALQUILER_FACTURA_ID;
+    if (isEditing) {
+        invoice.factura_id = facturaIdEl?.value || window.ALQUILER_FACTURA_ID || null;
+    }
+
     // Enviar por fetch al backend para persistir (tipo forzado a 'evento' por backend)
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    fetch('/alquiler/store', {
+    const url = isEditing ? '/alquiler/update' : '/alquiler/store';
+    fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -335,3 +351,5 @@ window.calcularFila = calcularFila;
 window.limpiarFormulario = limpiarFormulario;
 window.guardarFactura = guardarFactura;
 window.imprimirFactura = imprimirFactura;
+// Alias para botón 'Editar' que reutiliza la misma lógica (frontend detecta modo edición)
+window.editarFactura = function() { guardarFactura(); };

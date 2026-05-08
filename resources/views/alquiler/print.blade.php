@@ -1,28 +1,34 @@
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Factura - Imprimir</title>
-    @vite('resources/css/pages/alquiler.css')
-    <style>
-        /* Pequeños ajustes específicos para la plantilla de impresión */
-        body { background: #fff; padding: 10mm; }
-        .print-container { max-width: 190mm; margin: 0 auto; }
-        .meta { font-size: 9pt; color: #555; }
-        .company-name { font-weight: 900; font-size: 12pt; color: #111827; }
-        .right-col { text-align: right; }
-        table.items { width: 100%; border-collapse: collapse; margin-top: 8pt; }
-        table.items th, table.items td { padding: 6px 8px; font-size: 9pt; }
-        table.items th { border-bottom: 1px solid #ddd; }
-        .totals { margin-top: 8pt; }
-        .small-muted { color: #777; font-size: 8pt; }
-        .total-value { font-weight:900; font-size:14pt; color:#c8a84b; }
-        .label-muted { font-size:8pt; color:#666; }
-    </style>
-</head>
-<body>
-<div class="print-container">
+@php $isPartial = request()->query('partial'); @endphp
+
+@unless($isPartial)
+    <!doctype html>
+    <html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Factura - Imprimir</title>
+        @vite('resources/css/pages/alquiler.css')
+        <style>
+            /* Pequeños ajustes específicos para la plantilla de impresión */
+            body { background: #fff; padding: 10mm; }
+            .print-container { max-width: 190mm; margin: 0 auto; }
+            .meta { font-size: 9pt; color: #555; }
+            .company-name { font-weight: 900; font-size: 12pt; color: #111827; }
+            .right-col { text-align: right; }
+            table.items { width: 100%; border-collapse: collapse; margin-top: 8pt; }
+            table.items th, table.items td { padding: 6px 8px; font-size: 9pt; }
+            table.items th { border-bottom: 1px solid #ddd; }
+            .totals { margin-top: 8pt; }
+            .small-muted { color: #777; font-size: 8pt; }
+            .total-value { font-weight:900; font-size:14pt; color:#c8a84b; }
+            .label-muted { font-size:8pt; color:#666; }
+        </style>
+    </head>
+    <body>
+    <div class="print-container">
+@else
+    <div class="print-container">
+@endunless
     <div style="display:grid;grid-template-columns:1fr 220px;gap:8px;align-items:start;border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:6px;">
         <div style="display:flex;gap:8px;align-items:center;">
             <div style="width:56px;height:56px;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;">
@@ -120,7 +126,11 @@
         </div>
     </div>
 
-</div>
-<script>window.onload = function(){ window.print(); };</script>
-</body>
-</html>
+    </div>
+    @if(! $isPartial && request()->query('autoprint'))
+        <script>window.onload = function(){ window.print(); };</script>
+    @endif
+    @unless($isPartial)
+    </body>
+    </html>
+    @endunless
