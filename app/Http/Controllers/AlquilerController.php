@@ -51,13 +51,14 @@ class AlquilerController extends Controller
         DB::beginTransaction();
         try {
             // Determine and reserve the next consecutive invoice number inside the transaction
-            $max = DB::table('facturas')->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->lockForUpdate()->value('max');
+            $tipo = $invoice['tipo'] ?? 'evento';
+            $max = DB::table('facturas')->where('tipo', $tipo)->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->lockForUpdate()->value('max');
             $next = $max ? intval($max) + 1 : 1;
             $numeroOrden = str_pad($next, 4, '0', STR_PAD_LEFT);
 
-            // Create factura; force tipo = 'evento' for this interface
+            // Create factura with the specified tipo (defaults to 'evento')
             $factura = Factura::create([
-                'tipo' => 'evento',
+                'tipo' => $tipo,
                 'numero_orden' => $numeroOrden,
                 'fecha' => $invoice['fecha'] ?? now()->toDateString(),
                 'persona' => $invoice['cliente']['nombre'] ?? null,
@@ -145,7 +146,7 @@ class AlquilerController extends Controller
             return response()->json([
                 'message' => 'Factura creada',
                 'factura_id' => $factura->id,
-                'redirect' => route('alquiler'),
+                'redirect' => route('alquiler.list'),
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -154,6 +155,8 @@ class AlquilerController extends Controller
             return response()->json(['message' => 'Error creando factura', 'error' => $e->getMessage()], 500);
         }
     }
+
+
 
     /**
      * Generate and return a PDF for the given factura id.
@@ -180,7 +183,14 @@ class AlquilerController extends Controller
             'items' => [],
             'observaciones' => $factura->observaciones,
             'total' => $factura->monto_total,
-            'company' => [],
+            'company' => [
+                'name' => 'ESENCIA RETRO',
+                'nit' => '1,007,450,540',
+                'tel' => '3162218491 - 3209180085',
+                'city' => 'Bogotá',
+                'email' => 'esenciaretro10@gmail.com',
+                'address' => ''
+            ],
         ];
 
         foreach ($factura->productos as $it) {

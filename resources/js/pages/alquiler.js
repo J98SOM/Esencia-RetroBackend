@@ -239,7 +239,68 @@ function guardarFactura() {
         invoice.factura_id = facturaIdEl?.value || window.ALQUILER_FACTURA_ID || null;
     }
 
-    // Enviar por fetch al backend para persistir (tipo forzado a 'evento' por backend)
+    // Validaciones completas antes de enviar: fecha, cliente, NIT, medio de pago y consistencia de ítems
+    const errors = [];
+
+    if (!invoice.fecha || invoice.fecha.trim() === '') {
+        errors.push('Fecha de la factura (campo Fecha)');
+    }
+
+    if (!invoice.cliente || !invoice.cliente.nombre || invoice.cliente.nombre.trim() === '') {
+        errors.push('Nombre del cliente');
+    }
+
+    if (!invoice.cliente || !invoice.cliente.nit || invoice.cliente.nit.trim() === '') {
+        errors.push('NIT / Cédula del cliente');
+    }
+
+    if (!invoice.medio_pago || invoice.medio_pago.trim() === '') {
+        errors.push('Medio de pago');
+    }
+
+    // Validar ítems: al menos uno completo, y cada ítem parcial debe estar completo
+    let validItemCount = 0;
+    invoice.items.forEach((it, idx) => {
+        const desc = (it.desc || '').toString().trim();
+        const cant = parseFloat(it.cant) || 0;
+        const precio = parseFloat(it.precio) || 0;
+
+        if (desc === '' && cant === 0 && precio === 0) {
+            return; // fila vacía, ignora
+        }
+
+        // Si hay algún valor, todos deben estar presentes y válidos
+        if (desc === '' || cant <= 0 || precio <= 0) {
+            errors.push(`Ítem ${idx + 1}: completar descripción, cantidad (>0) y precio (>0)`);
+        } else {
+            validItemCount++;
+        }
+    });
+
+    if (validItemCount === 0) {
+        errors.push('Agregar al menos un ítem con descripción, cantidad y precio válidos');
+    }
+
+    if (errors.length > 0) {
+        alert('Corrige los siguientes campos antes de guardar:\n\n- ' + errors.join('\n- '));
+        // enfocar el primer campo inválido razonable
+        if (errors[0].toLowerCase().includes('fecha')) document.getElementById('factura-fecha')?.focus();
+        else if (errors[0].toLowerCase().includes('nombre')) document.getElementById('cliente-nombre')?.focus();
+        else if (errors[0].toLowerCase().includes('nit')) document.getElementById('cliente-nit')?.focus();
+        else if (errors[0].toLowerCase().includes('medio de pago')) document.getElementById('medio-pago')?.focus();
+        else {
+            // intentar enfocar primer item con problema
+            const firstProblem = document.querySelector('#items-tabla tr.item-row');
+            firstProblem?.querySelector('.item-desc')?.focus();
+        }
+        return;
+    }
+
+    // Confirmación del usuario
+    const confirmMsg = isEditing ? '¿Desea actualizar esta factura?' : '¿Desea crear la factura de alquiler?';
+    if (!window.confirm(confirmMsg)) {
+        return;
+    }
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     const url = isEditing ? '/alquiler/update' : '/alquiler/store';
     fetch(url, {
@@ -250,17 +311,20 @@ function guardarFactura() {
             'X-CSRF-TOKEN': csrf || ''
         },
         body: JSON.stringify({ invoice })
-    }).then(r => r.json())
-      .then(data => {
-        const toast = document.createElement('div');
-        toast.className = 'alquiler-toast';
-        toast.innerHTML = '<span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1;font-size:1.2rem">check_circle</span> ' + (data.message || 'Factura guardada');
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2500);
-        if (data.redirect) {
-            setTimeout(() => { window.location.href = data.redirect; }, 800);
-        }
-    }).catch(err => {
+        }).then(r => r.json())
+            .then(data => {
+                const toast = document.createElement('div');
+                toast.className = 'alquiler-toast';
+                toast.innerHTML = '<span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1;font-size:1.2rem">check_circle</span> ' + (data.message || 'Factura guardada');
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+
+                // Preferir redirect provisto por el backend, si no viene y no es edición, enviar al listado
+                const redirectUrl = data.redirect || (!isEditing ? '/alquiler/list' : null);
+                if (redirectUrl) {
+                        setTimeout(() => { window.location.href = redirectUrl; }, 800);
+                }
+        }).catch(err => {
         console.error('Error guardando factura', err);
         const toast = document.createElement('div');
         toast.className = 'alquiler-toast';

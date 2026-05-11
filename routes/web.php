@@ -3,6 +3,7 @@
 use App\Http\Controllers\AlquilerController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MesaController;
+use App\Http\Controllers\CajaController;
 use App\Models\Factura;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,8 +38,8 @@ Route::middleware('auth')->get('/inventarios', [InventarioController::class, 'in
 
 // Alquiler view (create / edit)
 Route::middleware('auth')->get('/alquiler', function (Request $request) {
-    // Calculate next invoice number (consecutive)
-    $max = DB::table('facturas')->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->value('max');
+    // Calculate next invoice number (consecutive) for 'evento' type
+    $max = DB::table('facturas')->where('tipo', 'evento')->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->value('max');
     $next = $max ? intval($max) + 1 : 1;
     $nextStr = str_pad($next, 4, '0', STR_PAD_LEFT);
 
@@ -72,6 +73,11 @@ Route::middleware('auth')->get('/alquiler', function (Request $request) {
     ]);
 })->name('alquiler');
 
+// Caja view and store
+Route::middleware('auth')->get('/alquiler/caja', [CajaController::class, 'index'])->name('alquiler.caja');
+
+Route::middleware('auth')->post('/alquiler/caja', [CajaController::class, 'store'])->name('alquiler.caja.store');
+
 // Alquiler - listado (tabla) para CRUD general
 Route::middleware('auth')->get('/alquiler/list', function () {
     $facturas = Factura::where('tipo', 'evento')->orderBy('fecha', 'desc')->paginate(20);
@@ -81,7 +87,8 @@ Route::middleware('auth')->get('/alquiler/list', function () {
 
 // Alquiler edit view (dedicated route) -> reuse index view but with factura prefilled
 Route::middleware('auth')->get('/alquiler/{id}/edit', function ($id) {
-    $max = DB::table('facturas')->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->value('max');
+    // next number for editing alquiler (evento)
+    $max = DB::table('facturas')->where('tipo', 'evento')->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->value('max');
     $next = $max ? intval($max) + 1 : 1;
     $nextStr = str_pad($next, 4, '0', STR_PAD_LEFT);
 
@@ -142,7 +149,14 @@ Route::middleware('auth')->post('/alquiler/print', function (Request $request) {
 // Print view for a factura id (openable in new tab for printing / save-as-pdf)
 Route::middleware('auth')->get('/alquiler/{id}/print', function ($id) {
     $factura = Factura::with(['productos', 'metodosPago'])->find($id);
-    $invoice = ['company' => [], 'cliente' => [], 'items' => []];
+    $invoice = ['company' => [
+        'name' => 'ESENCIA RETRO',
+        'nit' => '1,007,450,540',
+        'tel' => '3162218491 - 3209180085',
+        'city' => 'Bogotá',
+        'email' => 'esenciaretro10@gmail.com',
+        'address' => ''
+    ], 'cliente' => [], 'items' => []];
     if ($factura) {
         $invoice = [
             'no' => $factura->numero_orden,

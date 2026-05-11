@@ -11,7 +11,20 @@ class ProductoController extends Controller
 {
     public function index()
     {
-        return response()->json(Producto::all());
+        $q = request()->query('q') ?? request()->query('search') ?? null;
+        if ($q) {
+            $q = trim($q);
+            $query = Producto::query();
+            if (is_numeric($q)) {
+                $query->where('id', $q)->orWhere('nombre', 'like', "%{$q}%");
+            } else {
+                $query->where('nombre', 'like', "%{$q}%");
+            }
+            $results = $query->select('id', 'nombre', 'precio')->limit(15)->get();
+            return response()->json($results);
+        }
+
+        return response()->json(Producto::select('id', 'nombre', 'precio')->get());
     }
 
     public function store(Request $request)

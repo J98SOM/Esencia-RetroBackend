@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\AlquilerController;
+use App\Models\Factura;
 use App\Http\Controllers\Api\InventarioController;
 use App\Http\Controllers\Api\MesaController;
 use App\Http\Controllers\Api\ProductoController;
@@ -35,4 +37,29 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/productos', ProductoController::class)->names('api.productos');
     // Inventarios CRUD API
     Route::apiResource('/inventarios', InventarioController::class)->names('api.inventarios');
+
+    // Alquiler API endpoints (JSON) for frontend
+    Route::get('/alquiler', function () {
+        $facturas = Factura::where('tipo', 'evento')->with(['productos', 'metodosPago'])->orderBy('fecha', 'desc')->paginate(20);
+        return response()->json($facturas);
+    })->name('api.alquiler.index');
+
+    Route::get('/alquiler/{id}', function ($id) {
+        $factura = Factura::with(['productos', 'metodosPago'])->find($id);
+        if (! $factura) {
+            return response()->json(['message' => 'Factura no encontrada'], 404);
+        }
+        return response()->json($factura);
+    })->name('api.alquiler.show');
+
+    // Use existing controller methods (they already accept JSON payloads and return JSON)
+    Route::post('/alquiler', [AlquilerController::class, 'store'])->name('api.alquiler.store');
+    Route::put('/alquiler/{id}', [AlquilerController::class, 'update'])->name('api.alquiler.update');
+    Route::delete('/alquiler/{id}', function ($id) {
+        $deleted = Factura::destroy($id);
+        return response()->json(['deleted' => (bool) $deleted]);
+    })->name('api.alquiler.delete');
+
+    // PDF download via controller (returns binary/pdf) - keep behind auth
+    Route::get('/alquiler/{id}/pdf', [AlquilerController::class, 'pdf'])->name('api.alquiler.pdf');
 });
