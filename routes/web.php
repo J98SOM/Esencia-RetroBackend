@@ -87,8 +87,17 @@ Route::middleware('auth')->post('/alquiler/caja', [CajaController::class, 'store
 Route::middleware('auth')->get('/alquiler/list', function () {
     $facturas = Factura::orderBy('fecha', 'desc')->paginate(20);
 
-    return view('alquiler.list', compact('facturas'));
+    // Load mesas to allow creating orders by mesa from the list view
+    $mesas = App\Models\Mesa::orderBy('nombre')->get();
+
+    return view('alquiler.list', compact('facturas', 'mesas'));
 })->name('alquiler.list');
+
+// Provide mesas as JSON for AJAX requests from the web UI
+Route::middleware('auth')->get('/mesas/json', function () {
+    $mesas = App\Models\Mesa::orderBy('nombre')->get(['id', 'nombre', 'capacidad']);
+    return response()->json($mesas);
+})->name('mesas.json');
 
 // Alquiler edit view (dedicated route) -> reuse index view but with factura prefilled
 Route::middleware('auth')->get('/alquiler/{id}/edit', function ($id) {

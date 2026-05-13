@@ -101,4 +101,90 @@ class CajaController extends Controller
             return response()->json(['message' => 'Error creando venta', 'error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Update an existing caja factura (tipo 'pos').
+     */
+    public function update(Request $request, $id = null)
+    {
+        $invoiceInput = $request->input('invoice');
+        $invoice = [];
+
+        if (is_array($invoiceInput)) {
+            $invoice = $invoiceInput;
+        } elseif (is_string($invoiceInput) && $invoiceInput !== '') {
+            $decoded = json_decode($invoiceInput, true);
+            if (is_array($decoded)) $invoice = $decoded;
+        } elseif ($request->isJson()) {
+            $payload = $request->json()->all();
+            if (is_array($payload) && ! empty($payload)) {
+                if (array_key_exists('invoice', $payload) && is_array($payload['invoice'])) {
+                    $invoice = $payload['invoice'];
+                } else {
+                    $invoice = $payload;
+                }
+            }
+        }
+
+        if ((empty($invoice) || empty($invoice['factura_id'])) && $id) {
+            $invoice['factura_id'] = $id;
+        }
+
+        if (empty($invoice) || empty($invoice['factura_id'])) {
+            return response()->json(['message' => 'Invoice or factura_id missing'], 422);
+        }
+
+        $factura = Factura::find($invoice['factura_id']);
+        if (! $factura) {
+            return response()->json(['message' => 'Factura no encontrada'], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $factura->update([
+                'fecha' => $invoice['fecha'] ?? $factura->fecha,
+                'persona' => $invoice['cliente']['nombre'] ?? $factura->persona,
+                'nit' => $invoice['cliente']['nit'] ?? $factura->nit,
+                'direccion' => $invoice['cliente']['direccion'] ?? $factura->direccion,
+                'telefono' => $invoice['cliente']['telefono'] ?? $factura->telefono,
+                'ciudad' => $invoice['cliente']['ciudad'] ?? $factura->ciudad,
+                'orden_compra' => $invoice['orden_compra'] ?? $factura->orden_compra,
+                'observaciones' => $invoice['observaciones'] ?? $factura->observaciones,
+                'monto_total' => $invoice['total'] ?? $factura->monto_total,
+            ]);
+
+            // Recreate items
+            ProductoXFactura::where('factura_id', $factura->id)->delete();
+            if (! empty($invoice['items']) && is_array($invoice['items'])) {
+                $hasDescripcion = Schema::hasColumn('productosxfactura', 'descripcion');
+                foreach ($invoice['items'] as $it) {
+                    $data = [
+                        'producto_id' => $it['producto_id'] ?? null,
+                        'factura_id' => $factura->id,
+                        'cantidad' => $it['cant'] ?? ($it['cantidad'] ?? 0),
+                        'precio_unitario' => $it['precio'] ?? ($it['precio_unitario'] ?? 0),
+                    ];
+                    if ($hasDescripcion) $data['descripcion'] = $it['desc'] ?? ($it['descripcion'] ?? null);
+                    ProductoXFactura::create($data);
+                }
+            }
+
+            // Recreate metodos
+            MetodoPago::where('factura_id', $factura->id)->delete();
+            if (! empty($invoice['metodos']) && is_array($invoice['metodos'])) {
+                foreach ($invoice['metodos'] as $mp) {
+                    MetodoPago::create(['factura_id' => $factura->id, 'metodo' => $mp['metodo'] ?? null, 'valor' => $mp['valor'] ?? 0]);
+                }
+            } elseif (! empty($invoice['medio_pago'])) {
+                MetodoPago::create(['factura_id' => $factura->id, 'metodo' => $invoice['medio_pago'], 'valor' => $invoice['total'] ?? 0]);
+            }
+
+            DB::commit();
+            return response()->json(['message' => 'Venta actualizada', 'factura_id' => $factura->id]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error actualizando venta caja: '.$e->getMessage(), ['exception' => $e]);
+            return response()->json(['message' => 'Error actualizando venta', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -60,6 +60,27 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['deleted' => (bool) $deleted]);
     })->name('api.alquiler.delete');
 
+    // Caja endpoints (POS) - separate behavior from alquiler
+    Route::get('/caja', function () {
+        $facturas = Factura::where('tipo', 'pos')->with(['productos', 'metodosPago'])->orderBy('fecha', 'desc')->paginate(20);
+        return response()->json($facturas);
+    })->name('api.caja.index');
+
+    Route::get('/caja/{id}', function ($id) {
+        $factura = Factura::with(['productos', 'metodosPago'])->find($id);
+        if (! $factura) {
+            return response()->json(['message' => 'Factura no encontrada'], 404);
+        }
+        return response()->json($factura);
+    })->name('api.caja.show');
+
+    Route::post('/caja', [\App\Http\Controllers\CajaController::class, 'store'])->name('api.caja.store');
+    Route::put('/caja/{id}', [\App\Http\Controllers\CajaController::class, 'update'])->name('api.caja.update');
+    Route::delete('/caja/{id}', function ($id) {
+        $deleted = Factura::destroy($id);
+        return response()->json(['deleted' => (bool) $deleted]);
+    })->name('api.caja.delete');
+
     // PDF download via controller (returns binary/pdf) - keep behind auth
     Route::get('/alquiler/{id}/pdf', [AlquilerController::class, 'pdf'])->name('api.alquiler.pdf');
 });

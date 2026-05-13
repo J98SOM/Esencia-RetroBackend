@@ -33,6 +33,7 @@
 
 @section('content')
 <div class="p-6 lg:p-8 flex-1">
+    @php $mesas = $mesas ?? collect(); @endphp
     <header class="flex items-center justify-between mb-6 no-print">
         <h2 class="text-2xl font-extrabold text-white">Listado de Alquileres</h2>
         <div class="flex gap-2">

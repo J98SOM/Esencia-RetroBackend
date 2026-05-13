@@ -159,7 +159,7 @@ class AlquilerController extends Controller
                 'message' => 'Factura creada',
                 'factura_id' => $factura->id,
                 'redirect' => route('alquiler.list'),
-            ]);
+            ], 201);
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Error creando factura: '.$e->getMessage(), ['exception' => $e]);
@@ -222,7 +222,7 @@ class AlquilerController extends Controller
     /**
      * Update an existing factura and its items/metodos.
      */
-    public function update(Request $request)
+    public function update(Request $request, $id = null)
     {
         $invoiceInput = $request->input('invoice');
         $invoice = [];
@@ -236,6 +236,12 @@ class AlquilerController extends Controller
             }
         } elseif (is_array($invoiceInput)) {
             $invoice = $invoiceInput;
+        }
+
+        // If the route provided an id (API clients using /api/alquiler/{id}),
+        // accept it when the payload doesn't include factura_id.
+        if ((empty($invoice) || empty($invoice['factura_id'])) && $id) {
+            $invoice['factura_id'] = $id;
         }
 
         if (empty($invoice) || empty($invoice['factura_id'])) {
