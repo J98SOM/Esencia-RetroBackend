@@ -178,6 +178,15 @@
         </div>
 
         <div class="overflow-x-auto">
+            @if(config('app.debug'))
+                <div class="px-5 mb-3 text-xs text-on-surface-variant">
+                    <strong>Debug:</strong>
+                    Productos cargados: {{ isset($products) ? $products->count() : 0 }}
+                    @if(isset($products) && $products->count() > 0)
+                        — Ejemplos: {{ $products->take(5)->pluck('nombre')->join(', ') }}
+                    @endif
+                </div>
+            @endif
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-container-high border-b border-white/10">
@@ -199,14 +208,16 @@
                         {{-- Descripción --}}
                         <td class="py-2 px-3">
                         <div style="display:flex;gap:.5rem;align-items:center">
-                            <select class="product-select" data-row="{{ $i }}" style="min-width:140px;padding:.25rem;border-radius:.375rem;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.06)">
-                                <option value="">— Producto —</option>
-                                @if(isset($products))
-                                    @foreach($products as $p)
-                                        <option value="{{ $p->id }}" data-name="{{ $p->nombre }}" data-price="{{ $p->precio }}" {{ (isset($it) && ($it['producto_id'] ?? null) == $p->id) ? 'selected' : '' }}>{{ $p->nombre }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
+                            @php
+                                $selectedProductName = '';
+                                if (isset($it) && !empty($it['producto_id']) && isset($products)) {
+                                    $found = $products->firstWhere('id', $it['producto_id']);
+                                    $selectedProductName = $found?->nombre ?? '';
+                                }
+                            @endphp
+                            <input list="products-list" class="product-dropdown" data-row="{{ $i }}" placeholder="— Producto —"
+                                   style="min-width:140px;padding:.25rem;border-radius:.375rem;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.06)"
+                                   value="{{ $selectedProductName }}">
                             <input type="text" name="descripcion_{{ $i }}" class="item-desc w-full bg-transparent border-b border-transparent
                                 focus:border-white/20 text-white text-xs outline-none py-1 transition-all" placeholder="{{ $i === 1 ? 'Ej: Alquiler de terraza + sonido' : '' }}" value="{{ $descVal }}">
                             <input type="hidden" class="item-product-id" name="producto_id_{{ $i }}" value="{{ $it['producto_id'] ?? '' }}">
@@ -237,6 +248,16 @@
                     @endfor
                 </tbody>
             </table>
+            @if(isset($products) && $products->count() > 0)
+                <datalist id="products-list">
+                    @foreach($products as $p)
+                        <option value="{{ $p->nombre }}" data-id="{{ $p->id }}" data-price="{{ $p->precio }}"></option>
+                    @endforeach
+                </datalist>
+                <script>
+                    window.PRODUCTS_DATA = {!! isset($products) ? $products->map(fn($x)=>['id'=>$x->id,'nombre'=>$x->nombre,'precio'=>$x->precio])->toJson() : '[]' !!};
+                </script>
+            @endif
         </div>
 
         {{-- ── Totales ─────────────────────────────────────────── --}}

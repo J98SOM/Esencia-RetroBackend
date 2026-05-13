@@ -45,9 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /** Attach change handlers to product select elements so selecting a product fills description and price */
 function attachProductHandlers() {
+    // Support legacy select elements (if any)
     const selects = document.querySelectorAll('.product-select');
     selects.forEach(sel => {
-        // prevent duplicate handlers
         if (sel._attached) return; sel._attached = true;
         sel.addEventListener('change', function(e){
             const rowNum = this.dataset.row;
@@ -57,26 +57,88 @@ function attachProductHandlers() {
             const price = parseFloat(opt?.dataset?.price) || 0;
             const row = document.querySelector(`[data-row="${rowNum}"]`);
             if (!row) return;
-            // fill description input if empty or if it came from select
             const descInput = row.querySelector('.item-desc');
             if (descInput && (!descInput.value || descInput.value.trim() === '')) {
                 descInput.value = name;
             }
-            // set product id hidden
             const pidInput = row.querySelector('.item-product-id');
             if (pidInput) pidInput.value = pid;
-            // set unit price
             const priceInput = row.querySelector('.item-precio');
             if (priceInput) {
                 priceInput.value = price > 0 ? price : '';
             }
             calcularFila(parseInt(rowNum,10));
         });
-        // If select already has a value (editing), trigger fill
         if (sel.value) {
             const evt = new Event('change');
             sel.dispatchEvent(evt);
         }
+    });
+
+    // New: inputs with datalist for searchable product dropdown
+    const dropdowns = document.querySelectorAll('.product-dropdown');
+    // build a name->product map for fast lookup
+    if (window.PRODUCTS_DATA && !window.PRODUCTS_MAP) {
+        window.PRODUCTS_MAP = {};
+        window.PRODUCTS_DATA.forEach(p => { window.PRODUCTS_MAP[p.nombre] = p; });
+    }
+    dropdowns.forEach(inp => {
+        if (inp._attached) return; inp._attached = true;
+        inp.addEventListener('input', function(e) {
+            const name = (this.value || '').toString();
+            const rowNum = this.dataset.row;
+            selectProductByName(rowNum, name);
+        });
+        inp.addEventListener('change', function(e) {
+            const name = (this.value || '').toString();
+            const rowNum = this.dataset.row;
+            selectProductByName(rowNum, name);
+        });
+        // If prefilled (editing), trigger selection
+        if (inp.value && inp.value.trim() !== '') {
+            selectProductByName(inp.dataset.row, inp.value.trim());
+        }
+    });
+    // Attach description handlers to clear producto_id when user types a custom description
+    attachDescriptionHandlers();
+}
+
+/** Find product by name and fill row fields (id, price, desc) */
+function selectProductByName(rowNum, name) {
+    if (!name) return;
+    const prod = (window.PRODUCTS_MAP && window.PRODUCTS_MAP[name]) || (window.PRODUCTS_DATA && window.PRODUCTS_DATA.find(p => p.nombre === name));
+    const row = document.querySelector(`[data-row="${rowNum}"]`);
+    if (!row) return;
+    const descInput = row.querySelector('.item-desc');
+    const pidInput = row.querySelector('.item-product-id');
+    const priceInput = row.querySelector('.item-precio');
+    if (prod) {
+        if (descInput && (!descInput.value || descInput.value.trim() === '')) descInput.value = prod.nombre;
+        if (pidInput) pidInput.value = prod.id;
+        if (priceInput) priceInput.value = prod.precio;
+        // mark as product-derived description
+        row._manualDesc = false;
+    } else {
+        // not found: clear product id and price but keep description
+        if (pidInput) pidInput.value = '';
+        row._manualDesc = false;
+    }
+    calcularFila(parseInt(rowNum,10));
+}
+
+// When user edits the description manually, clear producto_id so backend stores null
+function attachDescriptionHandlers() {
+    const descs = document.querySelectorAll('.item-desc');
+    descs.forEach(inp => {
+        if (inp._attachedDesc) return; inp._attachedDesc = true;
+        inp.addEventListener('input', function(e){
+            const row = this.closest('tr.item-row');
+            if (!row) return;
+            // mark manual editing and clear product id
+            row._manualDesc = true;
+            const pidInput = row.querySelector('.item-product-id');
+            if (pidInput) pidInput.value = '';
+        });
     });
 }
 

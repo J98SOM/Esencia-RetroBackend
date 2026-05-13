@@ -29,13 +29,22 @@ class AlquilerController extends Controller
         } elseif (is_string($invoiceInput) && $invoiceInput !== '') {
             $decoded = json_decode($invoiceInput, true);
             if (is_array($decoded)) {
-                $invoice = $decoded;
+                if (array_key_exists('invoice', $decoded) && is_array($decoded['invoice'])) {
+                    $invoice = $decoded['invoice'];
+                } else {
+                    $invoice = $decoded;
+                }
             }
         } elseif ($request->isJson()) {
-            // In case the client sent a JSON body without wrapping in `invoice`
+            // In case the client sent a JSON body. Accept both formats:
+            // { "invoice": { ... } }  OR  { ...items... } (raw invoice)
             $payload = $request->json()->all();
             if (is_array($payload) && ! empty($payload)) {
-                $invoice = $payload;
+                if (array_key_exists('invoice', $payload) && is_array($payload['invoice'])) {
+                    $invoice = $payload['invoice'];
+                } else {
+                    $invoice = $payload;
+                }
             }
         }
 
@@ -98,17 +107,20 @@ class AlquilerController extends Controller
                         'cantidad' => $it['cant'] ?? ($it['cantidad'] ?? 0),
                         'precio_unitario' => $it['precio'] ?? ($it['precio_unitario'] ?? 0),
                     ];
-                    // If producto_id is null but DB doesn't allow NULL, try to use a fallback product
-                    if (is_null($data['producto_id']) && ! $productoIdAllowsNull) {
-                        $firstProduct = Producto::first();
-                        if ($firstProduct) {
-                            $data['producto_id'] = $firstProduct->id;
+                    // Normalize producto_id: treat empty string or non-numeric as null
+                    if (array_key_exists('producto_id', $it)) {
+                        $pid = $it['producto_id'];
+                        if ($pid === '' || $pid === null) {
+                            $data['producto_id'] = null;
+                        } elseif (! is_numeric($pid)) {
+                            $data['producto_id'] = null;
                         } else {
-                            // Create a placeholder product
-                            $p = Producto::create(['nombre' => 'Servicio (generado)', 'precio' => $data['precio_unitario']]);
-                            $data['producto_id'] = $p->id;
+                            $data['producto_id'] = intval($pid);
                         }
                     }
+                    // Do NOT fallback to a first product here. If producto_id is null,
+                    // we will store NULL so that manually-entered descriptions do not
+                    // get associated to an arbitrary product.
                     // Add descripcion only if the column exists in the schema
                     if (Schema::hasColumn('productosxfactura', 'descripcion')) {
                         $data['descripcion'] = $it['desc'] ?? ($it['descripcion'] ?? null);
@@ -274,15 +286,18 @@ class AlquilerController extends Controller
                         'cantidad' => $it['cant'] ?? ($it['cantidad'] ?? 0),
                         'precio_unitario' => $it['precio'] ?? ($it['precio_unitario'] ?? 0),
                     ];
-                    if (is_null($data['producto_id']) && ! $productoIdAllowsNull) {
-                        $firstProduct = Producto::first();
-                        if ($firstProduct) {
-                            $data['producto_id'] = $firstProduct->id;
+                    // Normalize producto_id: treat empty string or non-numeric as null
+                    if (array_key_exists('producto_id', $it)) {
+                        $pid = $it['producto_id'];
+                        if ($pid === '' || $pid === null) {
+                            $data['producto_id'] = null;
+                        } elseif (! is_numeric($pid)) {
+                            $data['producto_id'] = null;
                         } else {
-                            $p = Producto::create(['nombre' => 'Servicio (generado)', 'precio' => $data['precio_unitario']]);
-                            $data['producto_id'] = $p->id;
+                            $data['producto_id'] = intval($pid);
                         }
                     }
+                    // Intentionally do not fallback here either; preserve NULL.
                     if ($hasDescripcion) {
                         $data['descripcion'] = $it['desc'] ?? ($it['descripcion'] ?? null);
                     }

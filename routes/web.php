@@ -114,11 +114,15 @@ Route::middleware('auth')->get('/alquiler/{id}/edit', function ($id) {
         }
     }
 
+    // Load products for the description dropdown/autocomplete (same as create route)
+    $products = App\Models\Producto::select('id','nombre','precio')->get();
+
     return view('alquiler.index', [
         'nextInvoiceNo' => $nextStr,
         'factura' => $factura,
         'items' => $items,
         'metodos' => $metodos,
+        'products' => $products,
     ]);
 })->name('alquiler.edit');
 
