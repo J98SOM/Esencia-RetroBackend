@@ -152,6 +152,7 @@
 @endsection
 
 @push('scripts')
+    <script src="/js/pos-printer.js"></script>
     @php
         // Prefer inlining the local source when present to avoid Vite/dev-server 404s in development environments.
         // Prefer a pre-copied public file if present to avoid inlining issues

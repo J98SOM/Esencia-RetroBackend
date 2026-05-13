@@ -39,7 +39,46 @@ document.addEventListener('DOMContentLoaded', () => {
             displayMedio.textContent = medioSelect.options[medioSelect.selectedIndex]?.text?.toUpperCase() || '';
         });
     }
+    // Attach product select handlers
+    attachProductHandlers();
 });
+
+/** Attach change handlers to product select elements so selecting a product fills description and price */
+function attachProductHandlers() {
+    const selects = document.querySelectorAll('.product-select');
+    selects.forEach(sel => {
+        // prevent duplicate handlers
+        if (sel._attached) return; sel._attached = true;
+        sel.addEventListener('change', function(e){
+            const rowNum = this.dataset.row;
+            const opt = this.options[this.selectedIndex];
+            const pid = this.value || '';
+            const name = opt?.dataset?.name || opt?.text || '';
+            const price = parseFloat(opt?.dataset?.price) || 0;
+            const row = document.querySelector(`[data-row="${rowNum}"]`);
+            if (!row) return;
+            // fill description input if empty or if it came from select
+            const descInput = row.querySelector('.item-desc');
+            if (descInput && (!descInput.value || descInput.value.trim() === '')) {
+                descInput.value = name;
+            }
+            // set product id hidden
+            const pidInput = row.querySelector('.item-product-id');
+            if (pidInput) pidInput.value = pid;
+            // set unit price
+            const priceInput = row.querySelector('.item-precio');
+            if (priceInput) {
+                priceInput.value = price > 0 ? price : '';
+            }
+            calcularFila(parseInt(rowNum,10));
+        });
+        // If select already has a value (editing), trigger fill
+        if (sel.value) {
+            const evt = new Event('change');
+            sel.dispatchEvent(evt);
+        }
+    });
+}
 
 // ----------------------------------------------------------------
 // Control de cantidad de ítems
@@ -228,7 +267,8 @@ function guardarFactura() {
         const cant = parseFloat(row.querySelector('.item-cant')?.value) || 0;
         const precio = parseFloat(row.querySelector('.item-precio')?.value) || 0;
         if (!desc && cant === 0 && precio === 0) return;
-        invoice.items.push({ desc: desc, cant: cant, precio: precio });
+        const pid = row.querySelector('.item-product-id')?.value || null;
+        invoice.items.push({ desc: desc, cant: cant, precio: precio, producto_id: pid });
         invoice.total += cant * precio;
     });
 

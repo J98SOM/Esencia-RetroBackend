@@ -51,6 +51,7 @@
                     <tr class="bg-surface-container-high border-b border-white/10">
                         <th class="text-left py-3 px-3">No.</th>
                         <th class="text-left py-3 px-3">Fecha</th>
+                        <th class="text-left py-3 px-3">Tipo</th>
                         <th class="text-left py-3 px-3">Cliente</th>
                         <th class="text-left py-3 px-3">NIT</th>
                         <th class="text-right py-3 px-3">Total</th>
@@ -63,6 +64,7 @@
                         <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
                             <td class="py-3 px-3">{{ $f->numero_orden }}</td>
                             <td class="py-3 px-3">{{ $f->fecha }}</td>
+                            <td class="py-3 px-3">{{ ucfirst($f->tipo ?? 'evento') }}</td>
                             <td class="py-3 px-3">{{ $f->persona }}</td>
                             <td class="py-3 px-3">{{ $f->nit }}</td>
                             <td class="py-3 px-3 text-right">{{ isset($f->monto_total) ? '$'.number_format($f->monto_total,0,',','.') : '$0' }}</td>
@@ -102,7 +104,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-6 px-3 text-center text-on-surface-variant">No hay alquileres registrados.</td>
+                            <td colspan="8" class="py-6 px-3 text-center text-on-surface-variant">No hay alquileres registrados.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -140,6 +142,7 @@
         </div>
 
         @push('scripts')
+            <script src="/js/pos-printer.js"></script>
             <script src="/js/alquiler-list.js"></script>
         @endpush
 

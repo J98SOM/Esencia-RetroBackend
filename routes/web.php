@@ -56,6 +56,7 @@ Route::middleware('auth')->get('/alquiler', function (Request $request) {
                     'desc' => $it->descripcion ?? ($it->producto?->nombre ?? ''),
                     'cant' => $it->cantidad,
                     'precio' => $it->precio_unitario,
+                    'producto_id' => $it->producto_id ?? null,
                 ];
             }
 
@@ -65,11 +66,15 @@ Route::middleware('auth')->get('/alquiler', function (Request $request) {
         }
     }
 
+    // Load products for description dropdown/autocomplete
+    $products = App\Models\Producto::select('id','nombre','precio')->get();
+
     return view('alquiler.index', [
         'nextInvoiceNo' => $nextStr,
         'factura' => $factura,
         'items' => $items,
         'metodos' => $metodos,
+        'products' => $products,
     ]);
 })->name('alquiler');
 
@@ -78,9 +83,9 @@ Route::middleware('auth')->get('/alquiler/caja', [CajaController::class, 'index'
 
 Route::middleware('auth')->post('/alquiler/caja', [CajaController::class, 'store'])->name('alquiler.caja.store');
 
-// Alquiler - listado (tabla) para CRUD general
+// Alquiler - listado (tabla) para CRUD general (mostrar todos los tipos)
 Route::middleware('auth')->get('/alquiler/list', function () {
-    $facturas = Factura::where('tipo', 'evento')->orderBy('fecha', 'desc')->paginate(20);
+    $facturas = Factura::orderBy('fecha', 'desc')->paginate(20);
 
     return view('alquiler.list', compact('facturas'));
 })->name('alquiler.list');
@@ -101,6 +106,7 @@ Route::middleware('auth')->get('/alquiler/{id}/edit', function ($id) {
                 'desc' => $it->descripcion ?? ($it->producto?->nombre ?? ''),
                 'cant' => $it->cantidad,
                 'precio' => $it->precio_unitario,
+                'producto_id' => $it->producto_id ?? null,
             ];
         }
         foreach ($factura->metodosPago as $m) {
@@ -184,8 +190,57 @@ Route::middleware('auth')->get('/alquiler/{id}/print', function ($id) {
         }
     }
 
+    // Choose template by factura type
+    $tipo = $factura->tipo ?? 'evento';
+    $tipo = strtolower($tipo);
+    if (in_array($tipo, ['pos', 'venta', 'caja'])) {
+        if (view()->exists('caja.print')) {
+            return view('caja.print', ['invoice' => $invoice]);
+        }
+    }
+
     return view('alquiler.print', ['invoice' => $invoice]);
 })->name('alquiler.printview');
+
+    // JSON endpoint for invoice data (used by JS printers)
+    Route::middleware('auth')->get('/alquiler/{id}/json', function ($id) {
+        $factura = App\Models\Factura::with(['productos', 'metodosPago'])->findOrFail($id);
+        $data = [
+            'id' => $factura->id,
+            'numero' => $factura->numero_orden ?? null,
+            'tipo' => $factura->tipo ?? null,
+            'company' => [
+                'name' => 'ESENCIA RETRO',
+                'nit' => '1,007,450,540',
+                'tel' => '3162218491 - 3209180085',
+                'city' => 'Bogotá',
+                'email' => 'esenciaretro10@gmail.com',
+                'logo' => asset('img/logo.png'),
+            ],
+            'cliente' => [
+                'nombre' => $factura->persona,
+                'nit' => $factura->nit,
+                'telefono' => $factura->telefono,
+                'direccion' => $factura->direccion,
+                'ciudad' => $factura->ciudad,
+            ],
+            'fecha' => $factura->fecha,
+            'items' => collect($factura->productos)->map(function ($it) {
+                return [
+                    'desc' => $it->descripcion ?? ($it->producto?->nombre ?? ''),
+                    'cant' => $it->cantidad,
+                    'precio' => $it->precio_unitario,
+                    'subtotal' => ($it->cantidad * $it->precio_unitario),
+                ];
+            })->values(),
+            'pagos' => collect($factura->metodosPago)->map(function ($m) {
+                return ['metodo' => $m->metodo, 'monto' => $m->valor ?? $m->monto ?? 0];
+            })->values(),
+            'totales' => ['subtotal' => $factura->subtotal ?? 0, 'total' => $factura->monto_total ?? 0],
+        ];
+
+        return response()->json($data);
+    });
 
 // Server-side generated PDF download
 Route::middleware('auth')->get('/alquiler/{id}/pdf', [AlquilerController::class, 'pdf'])->name('alquiler.pdf');

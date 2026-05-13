@@ -198,11 +198,19 @@
 
                         {{-- Descripción --}}
                         <td class="py-2 px-3">
-                        <input type="text" name="descripcion_{{ $i }}"
-                            class="item-desc w-full bg-transparent border-b border-transparent
-                                focus:border-white/20 text-white text-xs outline-none py-1 transition-all"
-                            placeholder="{{ $i === 1 ? 'Ej: Alquiler de terraza + sonido' : '' }}"
-                            value="{{ $descVal }}">
+                        <div style="display:flex;gap:.5rem;align-items:center">
+                            <select class="product-select" data-row="{{ $i }}" style="min-width:140px;padding:.25rem;border-radius:.375rem;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.06)">
+                                <option value="">— Producto —</option>
+                                @if(isset($products))
+                                    @foreach($products as $p)
+                                        <option value="{{ $p->id }}" data-name="{{ $p->nombre }}" data-price="{{ $p->precio }}" {{ (isset($it) && ($it['producto_id'] ?? null) == $p->id) ? 'selected' : '' }}>{{ $p->nombre }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <input type="text" name="descripcion_{{ $i }}" class="item-desc w-full bg-transparent border-b border-transparent
+                                focus:border-white/20 text-white text-xs outline-none py-1 transition-all" placeholder="{{ $i === 1 ? 'Ej: Alquiler de terraza + sonido' : '' }}" value="{{ $descVal }}">
+                            <input type="hidden" class="item-product-id" name="producto_id_{{ $i }}" value="{{ $it['producto_id'] ?? '' }}">
+                        </div>
                        </td>
 
                         {{-- Cantidad --}}

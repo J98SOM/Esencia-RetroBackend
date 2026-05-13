@@ -1,0 +1,51 @@
+/* Styles for Caja page (moved from inline view) */
+.caja-top { display:flex; gap:1rem; align-items:center; justify-content:space-between; }
+.caja-logo { display:flex; gap:1rem; align-items:center; }
+.caja-summary { display:flex; gap:1rem; align-items:center; }
+.summary-box { background:rgba(255,255,255,0.03); padding:1rem; border-radius:.75rem; min-width:160px; }
+.payments { display:flex; gap:.75rem; flex-direction:column; }
+.payments input { width:180px; }
+/* Table inputs: high-contrast for dark background */
+table.caja-table { width:100%; border-collapse: separate; border-spacing: 0; }
+table.caja-table thead th { background: rgba(255,255,255,0.04) !important; color: #ffffff !important; padding: .75rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
+table.caja-table thead th:first-child { padding-left: .75rem; }
+table.caja-table tbody tr { background: rgba(255,255,255,0.01); border-bottom: 1px solid rgba(255,255,255,0.03); }
+table.caja-table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.015); }
+table.caja-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+table.caja-table th, table.caja-table td { color: #ffffff !important; }
+
+table.caja-table input, table.caja-table select {
+    color: #ffffff !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    padding: .45rem .5rem !important;
+    border-radius: .375rem !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.01);
+}
+table.caja-table input::placeholder { color: rgba(255,255,255,0.55) !important; }
+table.caja-table input[type="number"] { text-align: right; }
+table.caja-table .caja-sub { color: #ffffff !important; font-weight: 700; }
+
+/* Make remove button visible and consistent */
+.remove-row { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.08); padding: .2rem .5rem; border-radius: .375rem; font-size: .9rem; }
+.remove-row.hidden { display: none !important; }
+/* Ensure payment controls are readable on dark background */
+.payment-method, .payment-amount { color: #ffffff !important; }
+.payment-method option { color: #000000; }
+.payment-amount::placeholder { color: rgba(255,255,255,0.6); }
+/* Small legend for available payment methods */
+.payments-legend { color: #ffffff; font-size: 0.85rem; margin-bottom: .25rem; opacity: .9; }
+table.caja-table td, table.caja-table th { padding:.5rem; }
+/* Autocomplete dropdown */
+.caja-dd { position: absolute; background: #0b1220; border: 1px solid rgba(255,255,255,0.06); color: #fff; z-index: 1200; max-height: 220px; overflow-y: auto; border-radius: .375rem; box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
+.caja-dd .item { padding: .45rem .6rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.02); }
+.caja-dd .item:hover { background: rgba(255,255,255,0.02); }
+/* Table scroll area: limit height and scroll only the table body */
+.caja-table-wrap { max-height: calc(100vh - 360px); overflow-y: auto; }
+.caja-table thead th { position: sticky; top: 0; z-index: 5; }
+
+/* Small responsive tweaks */
+@media (max-width: 640px) {
+    .caja-top { flex-direction: column; align-items: stretch; }
+    .caja-summary { justify-content: space-between; }
+}
