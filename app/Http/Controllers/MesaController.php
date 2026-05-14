@@ -51,4 +51,12 @@ class MesaController extends Controller
 
         return redirect()->route('mesas.index')->with('success', 'Mesa eliminada.');
     }
+
+    public function cards(): View
+    {
+        // Eager-load the single latest factura per mesa and its productos to show status and preload selections
+        $mesas = Mesa::with('latestFactura.productos')->orderBy('nombre')->get();
+
+        return view('mesas.cards', compact('mesas'));
+    }
 }

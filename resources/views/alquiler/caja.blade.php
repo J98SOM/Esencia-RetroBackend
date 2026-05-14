@@ -197,4 +197,46 @@
             address: ''
         };
         window.NEXT_INVOICE_NO = '{{ ($nextInvoiceNo ?? '') ?: '0001' }}';
+        window.CAJA_PRELOAD = {!! json_encode($cajaPreload ?? null) !!};
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.CAJA_PRELOAD && Array.isArray(window.CAJA_PRELOAD.items) && window.CAJA_PRELOAD.items.length) {
+                fetch('/productos/json')
+                    .then(r => r.json())
+                    .then(products => {
+                        const byId = {};
+                        products.forEach(p => byId[p.id] = p);
+                        const tbody = document.getElementById('caja-body');
+                        if (!tbody) return;
+                        tbody.innerHTML = '';
+                        let total = 0;
+                        window.CAJA_PRELOAD.items.forEach(it => {
+                            const prod = byId[it.producto_id] || { id: it.producto_id, nombre: '', precio: 0 };
+                            const qty = parseInt(it.cant, 10) || 1;
+                            const price = parseFloat(prod.precio) || 0;
+                            const subtotal = price * qty;
+                            total += subtotal;
+
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td><input class="caja-id text-sm" value="${prod.id}"></td>
+                                <td><input class="caja-name w-full text-sm" value="${prod.nombre}" placeholder="Nombre del producto"></td>
+                                <td><input type="number" min="0" step="1" class="caja-cant" value="${qty}"></td>
+                                <td><div class="caja-price" data-price="${price}">$${price.toFixed(2)}</div></td>
+                                <td class="caja-sub">$${subtotal.toFixed(2)}</td>
+                                <td><input type="button" class="remove-row" value="Quitar"></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+
+                        const totalEl = document.getElementById('caja-total');
+                        if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+                        const recibidoEl = document.getElementById('caja-recibido');
+                        if (recibidoEl) recibidoEl.textContent = '$' + total.toFixed(2);
+                    })
+                    .catch(err => console.error('Error cargando productos para preload caja', err));
+            }
+        });
     </script>

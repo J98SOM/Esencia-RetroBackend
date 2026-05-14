@@ -322,6 +322,9 @@ function guardarFactura() {
         orden_compra: document.getElementById('orden-compra')?.value || ''
     };
 
+    // Agregar mesa_id si fue provisto por la vista (crear factura desde una mesa)
+    invoice.mesa_id = document.getElementById('mesa-id')?.value || null;
+
     const rows = document.querySelectorAll('#items-tabla tr.item-row');
     rows.forEach((row) => {
         if (row.classList.contains('hidden-row')) return;

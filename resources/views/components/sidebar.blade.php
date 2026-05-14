@@ -40,13 +40,30 @@
             <!-- Navigation Links -->
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                 @php
+                    use Illuminate\Support\Facades\Route as RouteFacade;
+
                     $dashboardActive = request()->routeIs('dashboard');
                     $usuariosActive = request()->routeIs('usuarios.*');
-                    $mesasActive = request()->routeIs('mesas.*');
+                    // Mark 'Gestión de Mesas' active for resource routes but not for the 'cards' view
+                    $mesasActive = (request()->routeIs('mesas.*') && ! request()->routeIs('mesas.cards*'));
+                    // Consider public cards route active as well
+                    $mesasCardsActive = request()->routeIs('mesas.cards') || request()->routeIs('mesas.cards.public') || request()->is('mesas/cards*');
+                    $alquilerCreateActive = request()->routeIs('alquiler');
                     $productosActive = request()->routeIs('productos.*');
                     $inventariosActive = request()->routeIs('inventarios.*');
                     $alquilerListActive = request()->routeIs('alquiler.list') || request()->is('alquiler/list*');
                     $alquilerCajaActive = request()->routeIs('alquiler.caja') || request()->is('alquiler/caja*');
+
+                    // Determine which mesas.cards route to link to: prefer auth route when authenticated, else public
+                    if (auth()->check() && RouteFacade::has('mesas.cards')) {
+                        $mesasCardsUrl = route('mesas.cards');
+                    } elseif (RouteFacade::has('mesas.cards.public')) {
+                        $mesasCardsUrl = route('mesas.cards.public');
+                    } elseif (RouteFacade::has('mesas.cards')) {
+                        $mesasCardsUrl = route('mesas.cards');
+                    } else {
+                        $mesasCardsUrl = '#';
+                    }
                 @endphp
 
                 {{-- Default links always shown --}}
@@ -69,6 +86,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V8zm5 4h4"/>
                     </svg>
                     <span>Gestión de Mesas</span>
+                </a>
+
+                <a href="{{ $mesasCardsUrl }}" class="block mt-2 px-4 py-3 rounded-lg {{ $mesasCardsActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">
+                    <svg class="w-5 h-5 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V8zm5 4h4"/>
+                    </svg>
+                    <span>Mesas (Tarjetas)</span>
                 </a>
 
                 <a href="{{ route('productos.index') }}" class="block mt-2 px-4 py-3 rounded-lg {{ $productosActive ? 'bg-gradient-to-r from-primary to-primary-dark text-white shadow-[0_0_15px_rgba(234,188,78,0.4)] font-bold transition' : 'text-white/70 hover:text-white hover:bg-surface-container font-semibold transition' }}">

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Factura;
 use App\Models\MetodoPago;
-use App\Models\Producto;
 use App\Models\ProductoXFactura;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -168,8 +167,6 @@ class AlquilerController extends Controller
         }
     }
 
-
-
     /**
      * Generate and return a PDF for the given factura id.
      */
@@ -201,7 +198,7 @@ class AlquilerController extends Controller
                 'tel' => '3162218491 - 3209180085',
                 'city' => 'Bogotá',
                 'email' => 'esenciaretro10@gmail.com',
-                'address' => ''
+                'address' => '',
             ],
         ];
 

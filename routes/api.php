@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\AlquilerController;
-use App\Models\Factura;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InventarioController;
 use App\Http\Controllers\Api\MesaController;
 use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\CajaController;
+use App\Models\Factura;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -41,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Alquiler API endpoints (JSON) for frontend
     Route::get('/alquiler', function () {
         $facturas = Factura::where('tipo', 'evento')->with(['productos', 'metodosPago'])->orderBy('fecha', 'desc')->paginate(20);
+
         return response()->json($facturas);
     })->name('api.alquiler.index');
 
@@ -49,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         if (! $factura) {
             return response()->json(['message' => 'Factura no encontrada'], 404);
         }
+
         return response()->json($factura);
     })->name('api.alquiler.show');
 
@@ -57,12 +60,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/alquiler/{id}', [AlquilerController::class, 'update'])->name('api.alquiler.update');
     Route::delete('/alquiler/{id}', function ($id) {
         $deleted = Factura::destroy($id);
+
         return response()->json(['deleted' => (bool) $deleted]);
     })->name('api.alquiler.delete');
 
     // Caja endpoints (POS) - separate behavior from alquiler
     Route::get('/caja', function () {
         $facturas = Factura::where('tipo', 'pos')->with(['productos', 'metodosPago'])->orderBy('fecha', 'desc')->paginate(20);
+
         return response()->json($facturas);
     })->name('api.caja.index');
 
@@ -71,13 +76,15 @@ Route::middleware('auth:sanctum')->group(function () {
         if (! $factura) {
             return response()->json(['message' => 'Factura no encontrada'], 404);
         }
+
         return response()->json($factura);
     })->name('api.caja.show');
 
-    Route::post('/caja', [\App\Http\Controllers\CajaController::class, 'store'])->name('api.caja.store');
-    Route::put('/caja/{id}', [\App\Http\Controllers\CajaController::class, 'update'])->name('api.caja.update');
+    Route::post('/caja', [CajaController::class, 'store'])->name('api.caja.store');
+    Route::put('/caja/{id}', [CajaController::class, 'update'])->name('api.caja.update');
     Route::delete('/caja/{id}', function ($id) {
         $deleted = Factura::destroy($id);
+
         return response()->json(['deleted' => (bool) $deleted]);
     })->name('api.caja.delete');
 

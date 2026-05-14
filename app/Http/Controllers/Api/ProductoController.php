@@ -21,6 +21,7 @@ class ProductoController extends Controller
                 $query->where('nombre', 'like', "%{$q}%");
             }
             $results = $query->select('id', 'nombre', 'precio')->limit(15)->get();
+
             return response()->json($results);
         }
 

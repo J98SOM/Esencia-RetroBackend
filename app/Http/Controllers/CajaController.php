@@ -20,7 +20,14 @@ class CajaController extends Controller
         $max = DB::table('facturas')->where('tipo', 'pos')->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->value('max');
         $next = $max ? intval($max) + 1 : 1;
         $nextStr = str_pad($next, 4, '0', STR_PAD_LEFT);
-        return view('alquiler.caja', ['nextInvoiceNo' => $nextStr]);
+
+        // If the modal sent a preload payload, pass it to the view and clear it from session
+        $cajaPreload = session('caja_preload', null);
+        if ($cajaPreload) {
+            session()->forget('caja_preload');
+        }
+
+        return view('alquiler.caja', ['nextInvoiceNo' => $nextStr, 'cajaPreload' => $cajaPreload]);
     }
 
     /**
@@ -35,10 +42,14 @@ class CajaController extends Controller
             $invoice = $invoiceInput;
         } elseif (is_string($invoiceInput) && $invoiceInput !== '') {
             $decoded = json_decode($invoiceInput, true);
-            if (is_array($decoded)) $invoice = $decoded;
+            if (is_array($decoded)) {
+                $invoice = $decoded;
+            }
         } elseif ($request->isJson()) {
             $payload = $request->json()->all();
-            if (is_array($payload) && ! empty($payload)) $invoice = $payload;
+            if (is_array($payload) && ! empty($payload)) {
+                $invoice = $payload;
+            }
         }
 
         if (empty($invoice)) {
@@ -98,6 +109,7 @@ class CajaController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Error creando venta caja: '.$e->getMessage(), ['exception' => $e]);
+
             return response()->json(['message' => 'Error creando venta', 'error' => $e->getMessage()], 500);
         }
     }
@@ -114,7 +126,9 @@ class CajaController extends Controller
             $invoice = $invoiceInput;
         } elseif (is_string($invoiceInput) && $invoiceInput !== '') {
             $decoded = json_decode($invoiceInput, true);
-            if (is_array($decoded)) $invoice = $decoded;
+            if (is_array($decoded)) {
+                $invoice = $decoded;
+            }
         } elseif ($request->isJson()) {
             $payload = $request->json()->all();
             if (is_array($payload) && ! empty($payload)) {
@@ -164,7 +178,9 @@ class CajaController extends Controller
                         'cantidad' => $it['cant'] ?? ($it['cantidad'] ?? 0),
                         'precio_unitario' => $it['precio'] ?? ($it['precio_unitario'] ?? 0),
                     ];
-                    if ($hasDescripcion) $data['descripcion'] = $it['desc'] ?? ($it['descripcion'] ?? null);
+                    if ($hasDescripcion) {
+                        $data['descripcion'] = $it['desc'] ?? ($it['descripcion'] ?? null);
+                    }
                     ProductoXFactura::create($data);
                 }
             }
@@ -180,10 +196,12 @@ class CajaController extends Controller
             }
 
             DB::commit();
+
             return response()->json(['message' => 'Venta actualizada', 'factura_id' => $factura->id]);
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Error actualizando venta caja: '.$e->getMessage(), ['exception' => $e]);
+
             return response()->json(['message' => 'Error actualizando venta', 'error' => $e->getMessage()], 500);
         }
     }
