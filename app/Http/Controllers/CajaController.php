@@ -63,24 +63,65 @@ class CajaController extends Controller
             $next = $max ? intval($max) + 1 : 1;
             $numeroOrden = str_pad($next, 4, '0', STR_PAD_LEFT);
 
-            $factura = Factura::create([
-                'tipo' => $tipo,
-                'numero_orden' => $numeroOrden,
-                'fecha' => $invoice['fecha'] ?? now()->toDateString(),
-                'persona' => $invoice['cliente']['nombre'] ?? 'Caja',
-                'nit' => $invoice['cliente']['nit'] ?? null,
-                'direccion' => $invoice['cliente']['direccion'] ?? null,
-                'telefono' => $invoice['cliente']['telefono'] ?? null,
-                'ciudad' => $invoice['cliente']['ciudad'] ?? null,
-                'orden_compra' => $invoice['orden_compra'] ?? null,
-                'observaciones' => $invoice['observaciones'] ?? null,
-                'mesa_id' => null,
-                'estatus' => 'pagada',
-                'monto_total' => $invoice['total'] ?? 0,
-                'cambio' => 0,
-            ]);
+            // If a factura_id or mesa_id was provided and there's an existing pending factura,
+            // finalize (update) that same factura instead of creating a new one.
+            $mesaId = $invoice['mesa_id'] ?? null;
+            $facturaId = $invoice['factura_id'] ?? null;
+            $factura = null;
 
+            if ($facturaId) {
+                $factura = Factura::whereKey($facturaId)->lockForUpdate()->first();
+            }
+
+            if (! $factura && $mesaId) {
+                $factura = Factura::where('mesa_id', $mesaId)
+                    ->whereNotIn(DB::raw('LOWER(estatus)'), ['pagado', 'pagada'])
+                    ->orderBy('fecha', 'desc')
+                    ->lockForUpdate()
+                    ->first();
+            }
+
+            if ($factura) {
+                $factura->tipo = $tipo;
+                $factura->numero_orden = $factura->numero_orden ?: $numeroOrden;
+                $factura->fecha = $invoice['fecha'] ?? $factura->fecha;
+                $factura->persona = $invoice['cliente']['nombre'] ?? $factura->persona;
+                $factura->nit = $invoice['cliente']['nit'] ?? $factura->nit;
+                $factura->direccion = $invoice['cliente']['direccion'] ?? $factura->direccion;
+                $factura->telefono = $invoice['cliente']['telefono'] ?? $factura->telefono;
+                $factura->ciudad = $invoice['cliente']['ciudad'] ?? $factura->ciudad;
+                $factura->orden_compra = $invoice['orden_compra'] ?? $factura->orden_compra;
+                $factura->observaciones = $invoice['observaciones'] ?? $factura->observaciones;
+                $factura->mesa_id = $mesaId ?? $factura->mesa_id;
+                $factura->estatus = 'pagada';
+                $factura->monto_total = $invoice['total'] ?? $factura->monto_total;
+                $factura->cambio = $invoice['cambio'] ?? ($factura->cambio ?? 0);
+                $factura->save();
+            }
+
+            if (! $factura) {
+                // Create a new factura; if mesa_id was provided associate it
+                $factura = Factura::create([
+                    'tipo' => $tipo,
+                    'numero_orden' => $numeroOrden,
+                    'fecha' => $invoice['fecha'] ?? now()->toDateString(),
+                    'persona' => $invoice['cliente']['nombre'] ?? 'Caja',
+                    'nit' => $invoice['cliente']['nit'] ?? null,
+                    'direccion' => $invoice['cliente']['direccion'] ?? null,
+                    'telefono' => $invoice['cliente']['telefono'] ?? null,
+                    'ciudad' => $invoice['cliente']['ciudad'] ?? null,
+                    'orden_compra' => $invoice['orden_compra'] ?? null,
+                    'observaciones' => $invoice['observaciones'] ?? null,
+                    'mesa_id' => $mesaId,
+                    'estatus' => 'pagada',
+                    'monto_total' => $invoice['total'] ?? 0,
+                    'cambio' => $invoice['cambio'] ?? 0,
+                ]);
+            }
+
+            ProductoXFactura::where('factura_id', $factura->id)->delete();
             if (! empty($invoice['items']) && is_array($invoice['items'])) {
+                $hasDescripcion = Schema::hasColumn('productosxfactura', 'descripcion');
                 foreach ($invoice['items'] as $it) {
                     $data = [
                         'producto_id' => $it['producto_id'] ?? null,
@@ -88,13 +129,14 @@ class CajaController extends Controller
                         'cantidad' => $it['cant'] ?? ($it['cantidad'] ?? 0),
                         'precio_unitario' => $it['precio'] ?? ($it['precio_unitario'] ?? 0),
                     ];
-                    if (Schema::hasColumn('productosxfactura', 'descripcion')) {
+                    if ($hasDescripcion) {
                         $data['descripcion'] = $it['desc'] ?? ($it['descripcion'] ?? null);
                     }
                     ProductoXFactura::create($data);
                 }
             }
 
+            MetodoPago::where('factura_id', $factura->id)->delete();
             if (! empty($invoice['metodos']) && is_array($invoice['metodos'])) {
                 foreach ($invoice['metodos'] as $mp) {
                     MetodoPago::create(['factura_id' => $factura->id, 'metodo' => $mp['metodo'] ?? null, 'valor' => $mp['valor'] ?? 0]);

@@ -104,8 +104,10 @@
     $facturaSelections = [];
     foreach ($mesas as $m) {
         $items = [];
-        if ($m->latestFactura && isset($m->latestFactura->productos)) {
-            foreach ($m->latestFactura->productos as $pxf) {
+        $latestFactura = $m->latestFactura ?? null;
+        $latestStatus = $latestFactura ? trim(strtolower($latestFactura->estatus)) : null;
+        if ($latestFactura && ! in_array($latestStatus, ['pagado', 'pagada'], true) && isset($latestFactura->productos)) {
+            foreach ($latestFactura->productos as $pxf) {
                 // $pxf is a ProductoXFactura model: use producto_id and cantidad
                 $prodId = $pxf->producto_id ?? ($pxf->producto->id ?? null);
                 $qtyRaw = $pxf->cantidad ?? 1;

@@ -11,6 +11,7 @@ console.log('caja.inline.js loaded');
 /* JS for Caja view: dynamic rows, totals, payments and save */
 
 document.addEventListener('DOMContentLoaded', () => {
+	const preload = window.CAJA_PRELOAD || {};
 	const addBtn = document.getElementById('add-row');
 	const body = document.getElementById('caja-body');
 	const totalEl = document.getElementById('caja-total');
@@ -256,6 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		const invoice = {
 			fecha: new Date().toISOString().split('T')[0],
 			cliente: { nombre: 'Caja', nit: null },
+			mesa_id: preload.mesa_id || null,
+			factura_id: preload.factura_id || null,
 			numero_orden: (document.getElementById('caja-factura-no')?.value) || (window.NEXT_INVOICE_NO || null),
 			tipo: 'pos',
 			items: items,

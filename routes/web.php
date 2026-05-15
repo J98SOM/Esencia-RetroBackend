@@ -55,7 +55,7 @@ Route::middleware('auth')->post('/mesas/{mesa}/add-factura', function (Illuminat
     $factura = null;
     $factura = Illuminate\Support\Facades\DB::transaction(function () use ($mesa, $data, $products, $total) {
         $factura = App\Models\Factura::create([
-        'tipo' => 'mesa',
+        'tipo' => 'pos',
         'numero_orden' => null,
         'fecha' => now(),
         'persona' => null,
@@ -141,7 +141,7 @@ Route::post('/mesas/{mesa}/add-to-factura', function (Illuminate\Http\Request $r
             }
 
             $factura = App\Models\Factura::create([
-                'tipo' => 'mesa',
+                    'tipo' => 'pos',
                 'numero_orden' => null,
                 'fecha' => now(),
                 'persona' => null,
@@ -279,11 +279,22 @@ Route::middleware('auth')->post('/alquiler/caja/preload', function (Request $req
         $normalized[] = ['producto_id' => $id, 'cant' => $qty];
     }
 
+    $facturaId = null;
+    if ($mesaId) {
+        $pendingFactura = Factura::where('mesa_id', $mesaId)
+            ->whereNotIn(DB::raw('LOWER(estatus)'), ['pagado', 'pagada'])
+            ->orderBy('fecha', 'desc')
+            ->first();
+
+        $facturaId = $pendingFactura?->id;
+    }
+
     // Prepare a minimal caja payload to be consumed by the Caja view
     $caja = [
         'tipo' => 'pos',
         'items' => $normalized,
         'mesa_id' => $mesaId,
+        'factura_id' => $facturaId,
         'cliente' => ['nombre' => $mesaId ? "Mesa {$mesaId}" : 'Caja']
     ];
 

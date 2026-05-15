@@ -234,7 +234,7 @@
                         const totalEl = document.getElementById('caja-total');
                         if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
                         const recibidoEl = document.getElementById('caja-recibido');
-                        if (recibidoEl) recibidoEl.textContent = '$' + total.toFixed(2);
+                        if (recibidoEl) recibidoEl.textContent = '$0';
                     })
                     .catch(err => console.error('Error cargando productos para preload caja', err));
             }

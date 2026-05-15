@@ -1,6 +1,7 @@
 /* JS for Caja view: dynamic rows, totals, payments and save */
 
 document.addEventListener('DOMContentLoaded', () => {
+    const preload = window.CAJA_PRELOAD || {};
     const addBtn = document.getElementById('add-row');
     const body = document.getElementById('caja-body');
     const totalEl = document.getElementById('caja-total');
@@ -249,6 +250,8 @@ document.addEventListener('DOMContentLoaded', () => {
             empresa: (window.COMPANY || {}),
             numero_orden: (document.getElementById('caja-factura-no')?.value) || (window.NEXT_INVOICE_NO || null),
             tipo: 'pos',
+            mesa_id: preload.mesa_id || null,
+            factura_id: preload.factura_id || null,
             items: items,
             medio_pago: null,
             metodos: [],
