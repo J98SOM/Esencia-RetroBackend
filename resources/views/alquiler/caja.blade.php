@@ -9,7 +9,7 @@
         .caja-logo { display:flex; gap:1rem; align-items:center; }
         .caja-summary { display:flex; gap:1rem; align-items:center; }
         .summary-box { background:rgba(255,255,255,0.03); padding:1rem; border-radius:.75rem; min-width:160px; }
-        .payments { display:flex; gap:.75rem; flex-direction:column; }
+        .payments { display:flex; gap:.75rem; flex-direction:column;  }
         .payments input { width:180px; }
         /* Table inputs: high-contrast for dark background */
         table.caja-table { width:100%; border-collapse: separate; border-spacing: 0; }
