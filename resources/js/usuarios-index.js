@@ -5,7 +5,10 @@ import '../css/sweetalert.css';
 // Hacer que las funciones sean globales
 (function() {
     let rolesMap = {};
-    const token = localStorage.getItem('auth_token');
+
+    function csrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
 
     // Tab switching
     window.switchTab = function(tabName) {
@@ -31,8 +34,8 @@ import '../css/sweetalert.css';
             // Load users with role relationship (eager loaded from server)
             const usersResponse = await fetch('/api/users', {
                 method: 'GET',
+                credentials: 'same-origin',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 }
             });
@@ -109,8 +112,8 @@ import '../css/sweetalert.css';
         try {
             const response = await fetch('/api/roles', {
                 method: 'GET',
+                credentials: 'same-origin',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 }
             });
@@ -138,8 +141,8 @@ import '../css/sweetalert.css';
 
             const response = await fetch(`/api/users/${userId}`, {
                 method: 'GET',
+                credentials: 'same-origin',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 }
             });
@@ -190,9 +193,10 @@ import '../css/sweetalert.css';
         try {
             const response = await fetch(`/api/users/${userId}`, {
                 method: 'DELETE',
+                credentials: 'same-origin',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
                 }
             });
 
@@ -222,8 +226,8 @@ import '../css/sweetalert.css';
         try {
             const response = await fetch('/api/roles', {
                 method: 'GET',
+                credentials: 'same-origin',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 }
             });
@@ -286,8 +290,8 @@ import '../css/sweetalert.css';
         try {
             const response = await fetch(`/api/roles/${roleId}`, {
                 method: 'GET',
+                credentials: 'same-origin',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 }
             });
@@ -330,9 +334,10 @@ import '../css/sweetalert.css';
         try {
             const response = await fetch(`/api/roles/${roleId}`, {
                 method: 'DELETE',
+                credentials: 'same-origin',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
                 }
             });
 
@@ -369,11 +374,6 @@ import '../css/sweetalert.css';
     // Form submission handlers
     document.addEventListener('DOMContentLoaded', function() {
         // Check authentication
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-
         // User form submission
         const userForm = document.getElementById('user-form');
         if (userForm) {
@@ -418,10 +418,11 @@ import '../css/sweetalert.css';
 
                     const response = await fetch(url, {
                         method,
+                        credentials: 'same-origin',
                         headers: {
-                            'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
-                            'Accept': 'application/json'
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken()
                         },
                         body: JSON.stringify(body)
                     });
@@ -469,10 +470,11 @@ import '../css/sweetalert.css';
 
                     const response = await fetch(url, {
                         method,
+                        credentials: 'same-origin',
                         headers: {
-                            'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
-                            'Accept': 'application/json'
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken()
                         },
                         body: JSON.stringify({
                             name,

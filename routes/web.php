@@ -2,29 +2,67 @@
 
 use App\Http\Controllers\AlquilerController;
 use App\Http\Controllers\CajaController;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MesaController;
+use App\Http\Resources\UserResource;
 use App\Models\Factura;
 use App\Models\Mesa;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/login');
+Route::get('/', function () {
+    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
+});
 
 // Login route
-Route::get('/login', function () {
+Route::middleware('guest')->get('/login', function () {
     return view('auth.login');
 })->name('login');
 
+Route::middleware('guest')->post('/login', function (LoginRequest $request) {
+    $credentials = $request->validated();
+
+    if (! Auth::attempt($credentials)) {
+        return response()->json([
+            'message' => 'Invalid credentials',
+        ], 401);
+    }
+
+    $request->session()->regenerate();
+
+    $user = Auth::user();
+    if ($user) {
+        $user->loadMissing('role');
+    }
+
+    return response()->json([
+        'message' => 'Login successful',
+        'user' => new UserResource($user),
+    ]);
+})->name('login.store');
+
+Route::middleware('auth')->post('/logout', function (Request $request) {
+    Auth::guard('web')->logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return response()->json([
+        'message' => 'Logged out successfully',
+    ]);
+})->name('logout');
+
 // Dashboard route
-Route::get('/dashboard', function () {
+Route::middleware('auth')->get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
 // Users Management route
-Route::get('/usuarios', function () {
+Route::middleware('auth')->get('/usuarios', function () {
     return view('usuarios.index');
 })->name('usuarios.index');
 

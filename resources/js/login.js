@@ -13,6 +13,11 @@ window.Swal = Swal;
 function initializeLogin() {
     const loginForm = document.getElementById('login-form');
     if (!loginForm) return; // Exit if not on login page
+
+    if (window.__AUTHENTICATED__) {
+        window.location.href = '/dashboard';
+        return;
+    }
     
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -78,6 +83,10 @@ function initializeLogin() {
         }
     }
 
+    function csrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
+
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -92,12 +101,14 @@ function initializeLogin() {
         setButtonLoading(true);
 
         try {
-            const response = await fetch('/api/login', {
+            const response = await fetch('/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     email: email,
                     password: password,
@@ -109,9 +120,6 @@ function initializeLogin() {
             if (!response.ok) {
                 throw new Error(data.message || 'Error en la autenticación');
             }
-
-            localStorage.setItem('auth_token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
 
             showSuccess();
 

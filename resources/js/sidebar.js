@@ -1,11 +1,6 @@
 // Sidebar Management
 
-const token = localStorage.getItem('auth_token');
-const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-if (!token) {
-    window.location.href = '/login';
-}
+const user = window.__AUTH_USER__ || {};
 
 // Set user name in sidebar
 document.addEventListener('DOMContentLoaded', function() {
@@ -102,18 +97,17 @@ async function logout() {
  */
 async function performLogout() {
     try {
-        await fetch('/api/logout', {
+        await fetch('/logout', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
             },
+            credentials: 'same-origin',
         });
     } catch (error) {
         console.error('Error:', error);
     } finally {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
         window.location.href = '/login';
     }
 }

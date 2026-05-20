@@ -154,7 +154,7 @@
                 <!-- User Info -->
                 <div class="bg-gradient-to-r from-primary-container/40 to-surface-container rounded-lg p-4 user-info transition-all duration-300 border border-primary-container/50 shadow-[inset_0_0_15px_rgba(234,188,78,0.05)]">
                     <p class="text-xs text-white/70 mb-2 user-label uppercase tracking-widest">Autenticado</p>
-                    <p id="sidebar-user-name" class="text-sm font-semibold text-white truncate user-name tracking-wide">Usuario</p>
+                    <p id="sidebar-user-name" class="text-sm font-semibold text-white truncate user-name tracking-wide">{{ auth()->user()?->name ?? 'Usuario' }}</p>
                 </div>
 
                 <!-- Logout Button -->
