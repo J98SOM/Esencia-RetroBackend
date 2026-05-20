@@ -41,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
                 $proto = ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? getenv('HTTP_X_FORWARDED_PROTO')) ?: null;
             }
 
-            if ($proto && strtolower((string) $proto) === 'https') {
+            if ($proto && strtolower((string) $proto) === 'https')   {
                 URL::forceScheme('https');
             }
         }
