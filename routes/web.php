@@ -17,7 +17,11 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    abort(404);
 });
 
 // Login route
