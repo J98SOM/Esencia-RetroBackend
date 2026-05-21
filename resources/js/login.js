@@ -121,6 +121,10 @@ function initializeLogin() {
                 throw new Error(data.message || 'Error en la autenticación');
             }
 
+            if (data.token) {
+                window.setApiAuthToken?.(data.token);
+            }
+
             showSuccess();
 
         } catch (error) {

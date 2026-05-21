@@ -94,6 +94,10 @@ class AuthController extends Controller
             }
         }
 
+        if ($request->hasSession()) {
+            $request->session()->forget('api_token');
+        }
+
         return response()->json([
             'message' => 'Logged out successfully',
         ], 200);

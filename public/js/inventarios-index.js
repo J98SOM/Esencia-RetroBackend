@@ -1,6 +1,17 @@
 // Note: Using public/js path to match existing assets structure
 const inventariosApi = '/api/inventarios';
 
+function apiHeaders(extraHeaders = {}) {
+    if (window.getApiHeaders) {
+        return window.getApiHeaders(extraHeaders);
+    }
+
+    return {
+        Accept: 'application/json',
+        ...extraHeaders,
+    };
+}
+
 function csrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 }
@@ -15,7 +26,7 @@ let productos = [];
 
 async function loadProductos() {
     try {
-        const res = await fetch('/api/productos', { credentials: 'same-origin' });
+        const res = await fetch('/api/productos', { credentials: 'same-origin', headers: apiHeaders() });
         if (!res.ok) return;
         productos = await res.json();
         // only render dropdown if element exists on the page
@@ -59,7 +70,7 @@ function renderProductosDropdown(list) {
 
 async function loadInventarios() {
     try {
-        const res = await fetch(inventariosApi, { credentials: 'same-origin' });
+        const res = await fetch(inventariosApi, { credentials: 'same-origin', headers: apiHeaders() });
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         const tbody = document.getElementById('inventarios-tbody');
@@ -116,7 +127,7 @@ function closeInventarioModal() {
 
 async function editInventario(id) {
     try {
-        const res = await fetch(`${inventariosApi}/${id}`, { credentials: 'same-origin' });
+        const res = await fetch(`${inventariosApi}/${id}`, { credentials: 'same-origin', headers: apiHeaders() });
         if (!res.ok) throw new Error('Failed');
         const item = await res.json();
         document.getElementById('inventario-modal-title').textContent = 'Editar Item';
@@ -143,7 +154,7 @@ async function deleteInventario(id) {
         const res = await fetch(`${inventariosApi}/${id}`, {
             method: 'DELETE',
             credentials: 'same-origin',
-            headers: { 'X-CSRF-TOKEN': csrfToken() }
+            headers: apiHeaders({ 'X-CSRF-TOKEN': csrfToken() })
         });
         if (!res.ok) throw new Error('Failed to delete');
         await loadInventarios();
@@ -169,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
                 const productoId = document.getElementById('inventario-producto-id').value || null;
                 const payload = { nombre, producto_id: productoId, stock_inicial, stock_minimo, unidad_medida, descuento_inventario: descuento };
-            const opt = { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() }, credentials: 'same-origin', body: JSON.stringify(payload) };
+            const opt = { method: id ? 'PUT' : 'POST', headers: apiHeaders({ 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() }), credentials: 'same-origin', body: JSON.stringify(payload) };
             const url = id ? `${inventariosApi}/${id}` : inventariosApi;
             const res = await fetch(url, opt);
             if (res.status === 422) {

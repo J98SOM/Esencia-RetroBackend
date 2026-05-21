@@ -2,6 +2,17 @@
 (function() {
     const apiBase = '/api/productos';
 
+    function apiHeaders(extraHeaders = {}) {
+        if (window.getApiHeaders) {
+            return window.getApiHeaders(extraHeaders);
+        }
+
+        return {
+            Accept: 'application/json',
+            ...extraHeaders,
+        };
+    }
+
     function csrfToken() {
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
@@ -19,7 +30,7 @@
 
     async function loadProductos() {
         try {
-            const res = await fetch(apiBase, { credentials: 'same-origin' });
+            const res = await fetch(apiBase, { credentials: 'same-origin', headers: apiHeaders() });
             if (!res.ok) throw new Error('Failed to fetch productos');
             const data = await res.json();
             const tbody = document.getElementById('productos-tbody');
@@ -88,7 +99,7 @@
 
     window.editProducto = async function(id) {
         try {
-            const res = await fetch(`${apiBase}/${id}`, { credentials: 'same-origin' });
+            const res = await fetch(`${apiBase}/${id}`, { credentials: 'same-origin', headers: apiHeaders() });
             if (!res.ok) throw new Error('Failed to fetch producto');
             const p = await res.json();
             document.getElementById('producto-id').value = p.id;
@@ -136,7 +147,7 @@
         fetch(`${apiBase}/${id}`, {
             method: 'DELETE',
             credentials: 'same-origin',
-            headers: { 'X-CSRF-TOKEN': csrfToken() }
+            headers: apiHeaders({ 'X-CSRF-TOKEN': csrfToken() })
         }).then(r => {
             if (!r.ok) throw new Error('delete failed');
             showAlert('Producto eliminado');
@@ -174,7 +185,7 @@
                 const res = await fetch(url, {
                     method: 'POST',
                     credentials: 'same-origin',
-                    headers: { 'X-CSRF-TOKEN': csrfToken() },
+                    headers: apiHeaders({ 'X-CSRF-TOKEN': csrfToken() }),
                     body: form
                 });
 

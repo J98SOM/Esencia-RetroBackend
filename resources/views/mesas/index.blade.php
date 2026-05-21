@@ -199,7 +199,10 @@ function showErrors(errors) {
 
 async function loadMesas() {
     try {
-        const res = await fetch(apiBase, { credentials: 'same-origin' });
+        const res = await fetch(apiBase, {
+            credentials: 'same-origin',
+            headers: window.getApiHeaders ? window.getApiHeaders() : { 'Accept': 'application/json' }
+        });
         if (!res.ok) throw new Error('Failed to fetch mesas');
         const data = await res.json();
         const tbody = document.getElementById('mesas-tbody');
@@ -262,7 +265,10 @@ function closeMesaModal() {
 
 async function editMesa(id) {
     try {
-        const res = await fetch(`${apiBase}/${id}`, { credentials: 'same-origin' });
+        const res = await fetch(`${apiBase}/${id}`, {
+            credentials: 'same-origin',
+            headers: window.getApiHeaders ? window.getApiHeaders() : { 'Accept': 'application/json' }
+        });
         if (!res.ok) throw new Error('Failed to fetch mesa');
         const mesa = await res.json();
         
@@ -286,7 +292,7 @@ async function deleteMesa(id) {
         const res = await fetch(`${apiBase}/${id}`, {
             method: 'DELETE',
             credentials: 'same-origin',
-            headers: { 'X-CSRF-TOKEN': csrfToken() }
+            headers: (window.getApiHeaders ? window.getApiHeaders({ 'X-CSRF-TOKEN': csrfToken() }) : { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json' })
         });
         if (!res.ok) throw new Error('Failed to delete');
         await loadMesas();
@@ -318,16 +324,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken(),
-                    'Accept': 'application/json'
+                    ...(window.getApiHeaders ? window.getApiHeaders({ 'X-CSRF-TOKEN': csrfToken() }) : { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json' })
                 },
                 body: JSON.stringify({ nombre, capacidad })
             });
             
-            const data = await res.json();
+            const contentType = res.headers.get('content-type') || '';
+            const data = contentType.includes('application/json') ? await res.json() : { message: await res.text() };
             
             if (!res.ok) {
                 showErrors(data.errors || {});
+                if (!data.errors && data.message) {
+                    showAlert(data.message, 'error');
+                }
                 return;
             }
             

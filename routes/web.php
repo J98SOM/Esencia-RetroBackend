@@ -9,9 +9,11 @@ use App\Http\Resources\UserResource;
 use App\Models\Factura;
 use App\Models\Mesa;
 use App\Models\Producto;
+use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -35,17 +37,30 @@ Route::middleware('guest')->post('/login', function (LoginRequest $request) {
     $request->session()->regenerate();
 
     $user = Auth::user();
-    if ($user) {
-        $user->loadMissing('role');
+    if (! $user instanceof App\Models\User) {
+        abort(401);
     }
+
+    $user->loadMissing('role');
+
+    $apiToken = $user->createToken('web-session-token')->plainTextToken;
+    session(['api_token' => $apiToken]);
 
     return response()->json([
         'message' => 'Login successful',
         'user' => new UserResource($user),
+        'token' => $apiToken,
     ]);
 })->name('login.store');
 
 Route::middleware('auth')->post('/logout', function (Request $request) {
+    $storedToken = $request->session()->pull('api_token');
+
+    if (is_string($storedToken) && str_contains($storedToken, '|')) {
+        [$tokenId] = explode('|', $storedToken, 2);
+        PersonalAccessToken::find($tokenId)?->delete();
+    }
+
     Auth::guard('web')->logout();
 
     $request->session()->invalidate();
@@ -478,7 +493,7 @@ Route::middleware('auth')->get('/alquiler/{id}/print', function ($id) {
     $tipo = $factura->tipo ?? 'evento';
     $tipo = strtolower($tipo);
     if (in_array($tipo, ['pos', 'venta', 'caja'])) {
-        if (view()->exists('caja.print')) {
+        if (View::exists('caja.print')) {
             return view('caja.print', ['invoice' => $invoice]);
         }
     }

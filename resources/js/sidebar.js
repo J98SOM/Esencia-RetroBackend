@@ -108,6 +108,7 @@ async function performLogout() {
     } catch (error) {
         console.error('Error:', error);
     } finally {
+        window.clearApiAuthToken?.();
         window.location.href = '/login';
     }
 }
