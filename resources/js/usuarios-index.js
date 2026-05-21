@@ -10,6 +10,17 @@ import '../css/sweetalert.css';
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
 
+    function apiHeaders(extraHeaders = {}) {
+        if (window.getApiHeaders) {
+            return window.getApiHeaders(extraHeaders);
+        }
+
+        return {
+            Accept: 'application/json',
+            ...extraHeaders,
+        };
+    }
+
     // Tab switching
     window.switchTab = function(tabName) {
         const tabs = document.querySelectorAll('.tab-content');
@@ -35,9 +46,7 @@ import '../css/sweetalert.css';
             const usersResponse = await fetch('/api/users', {
                 method: 'GET',
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: apiHeaders()
             });
 
             if (!usersResponse.ok) throw new Error('Failed to fetch users');
@@ -113,9 +122,7 @@ import '../css/sweetalert.css';
             const response = await fetch('/api/roles', {
                 method: 'GET',
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: apiHeaders()
             });
 
             if (!response.ok) throw new Error('Failed to fetch roles');
@@ -142,9 +149,7 @@ import '../css/sweetalert.css';
             const response = await fetch(`/api/users/${userId}`, {
                 method: 'GET',
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: apiHeaders()
             });
 
             if (!response.ok) throw new Error('Failed to fetch user');
@@ -194,10 +199,7 @@ import '../css/sweetalert.css';
             const response = await fetch(`/api/users/${userId}`, {
                 method: 'DELETE',
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken()
-                }
+                headers: apiHeaders({ 'X-CSRF-TOKEN': csrfToken() })
             });
 
             if (!response.ok) throw new Error('Failed to delete user');
@@ -227,9 +229,7 @@ import '../css/sweetalert.css';
             const response = await fetch('/api/roles', {
                 method: 'GET',
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: apiHeaders()
             });
 
             if (!response.ok) throw new Error('Failed to fetch roles');
@@ -291,9 +291,7 @@ import '../css/sweetalert.css';
             const response = await fetch(`/api/roles/${roleId}`, {
                 method: 'GET',
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: apiHeaders()
             });
 
             if (!response.ok) throw new Error('Failed to fetch role');
@@ -335,10 +333,7 @@ import '../css/sweetalert.css';
             const response = await fetch(`/api/roles/${roleId}`, {
                 method: 'DELETE',
                 credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken()
-                }
+                headers: apiHeaders({ 'X-CSRF-TOKEN': csrfToken() })
             });
 
             if (!response.ok) throw new Error('Failed to delete role');
@@ -419,11 +414,10 @@ import '../css/sweetalert.css';
                     const response = await fetch(url, {
                         method,
                         credentials: 'same-origin',
-                        headers: {
+                        headers: apiHeaders({
                             'Content-Type': 'application/json',
-                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': csrfToken()
-                        },
+                        }),
                         body: JSON.stringify(body)
                     });
 
@@ -471,11 +465,10 @@ import '../css/sweetalert.css';
                     const response = await fetch(url, {
                         method,
                         credentials: 'same-origin',
-                        headers: {
+                        headers: apiHeaders({
                             'Content-Type': 'application/json',
-                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': csrfToken()
-                        },
+                        }),
                         body: JSON.stringify({
                             name,
                             description
