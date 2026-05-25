@@ -1,6 +1,7 @@
 // Productos front-end manager
 (function() {
     const apiBase = '/api/productos';
+    let isSavingProducto = false;
 
     function apiHeaders(extraHeaders = {}) {
         if (window.getApiHeaders) {
@@ -17,15 +18,56 @@
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
 
-    function showAlert(message, type = 'success') {
-        const alerts = document.getElementById('alerts');
-        const alertHTML = `
-            <div class="p-4 rounded-lg border transition-all animate-fade-in ${type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}">
-                <p>${message}</p>
-            </div>
-        `;
-        alerts.innerHTML = alertHTML;
-        setTimeout(() => { alerts.innerHTML = ''; }, 3500);
+    function showToast(message, icon = 'success') {
+        if (window.Swal) {
+            Swal.fire({
+                icon,
+                title: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2200,
+                timerProgressBar: true,
+            });
+            return;
+        }
+
+        alert(message);
+    }
+
+    function showSavingAlert() {
+        if (!window.Swal) {
+            return;
+        }
+
+        Swal.fire({
+            title: 'Guardando producto',
+            text: 'Espera un momento mientras se procesa la información.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+        });
+    }
+
+    function closeSavingAlert() {
+        if (window.Swal && Swal.isVisible()) {
+            Swal.close();
+        }
+    }
+
+    function setSavingState(formEl, saving) {
+        const submitButton = formEl?.querySelector('button[type="submit"]');
+        if (!submitButton) {
+            return;
+        }
+
+        submitButton.disabled = saving;
+        submitButton.classList.toggle('opacity-70', saving);
+        submitButton.classList.toggle('cursor-not-allowed', saving);
+        submitButton.textContent = saving ? 'Guardando...' : 'Guardar';
     }
 
     async function loadProductos() {
@@ -75,7 +117,7 @@
             if (tbody) {
                 tbody.innerHTML = '<tr class="border-t border-surface-container/30"><td colspan="6" class="px-6 py-8 text-center text-white/60">No hay productos</td></tr>';
             }
-            showAlert('Error al cargar productos', 'error');
+            showToast('Error al cargar productos', 'error');
         }
     }
 
@@ -120,7 +162,7 @@
             document.getElementById('producto-modal').classList.remove('hidden');
         } catch (err) {
             console.error(err);
-            showAlert('Error al cargar el producto', 'error');
+            showToast('Error al cargar el producto', 'error');
         }
     };
 
@@ -150,11 +192,11 @@
             headers: apiHeaders({ 'X-CSRF-TOKEN': csrfToken() })
         }).then(r => {
             if (!r.ok) throw new Error('delete failed');
-            showAlert('Producto eliminado');
+            showToast('Producto eliminado');
             loadProductos();
         }).catch(err => {
             console.error(err);
-            showAlert('Error al eliminar', 'error');
+            showToast('Error al eliminar', 'error');
         });
     };
 
@@ -165,6 +207,14 @@
         setupFilePreview();
         formEl.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isSavingProducto) {
+                return;
+            }
+
+            isSavingProducto = true;
+            setSavingState(formEl, true);
+            showSavingAlert();
+
             const id = document.getElementById('producto-id').value;
             const nombre = document.getElementById('producto-nombre').value.trim();
             const categoria = document.getElementById('producto-categoria').value.trim();
@@ -196,15 +246,21 @@
                         errEl.textContent = (err && (err.message || JSON.stringify(err))) || 'Error al guardar';
                         errEl.classList.remove('hidden');
                     }
+                    closeSavingAlert();
                     return;
                 }
 
+                closeSavingAlert();
                 window.closeProductoModal();
                 loadProductos();
-                showAlert(id ? 'Producto actualizado' : 'Producto creado');
+                showToast(id ? 'Producto actualizado' : 'Producto creado');
             } catch (err) {
                 console.error(err);
-                showAlert('Error al guardar producto', 'error');
+                closeSavingAlert();
+                showToast('Error al guardar producto', 'error');
+            } finally {
+                isSavingProducto = false;
+                setSavingState(formEl, false);
             }
         });
     });

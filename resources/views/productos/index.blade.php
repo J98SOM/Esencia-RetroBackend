@@ -19,8 +19,6 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div id="alerts" class="mb-6"></div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         <div class="card-hover bg-surface-container-low rounded-2xl p-6 shadow-lg cursor-pointer border border-surface-container hover:border-primary-container/50 transition-all duration-300 group" onclick="openProductoModal()">
             <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-primary-container/50 to-surface-container-high rounded-full mb-4 border border-inverse-primary/50">
