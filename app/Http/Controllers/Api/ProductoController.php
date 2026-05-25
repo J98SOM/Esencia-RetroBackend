@@ -9,11 +9,10 @@ use Illuminate\Support\Facades\Log;
 
 class ProductoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $q = request()->query('q') ?? request()->query('search') ?? null;
+        $q = trim((string) ($request->query('q') ?? $request->query('search') ?? ''));
         if ($q) {
-            $q = trim($q);
             $query = Producto::query();
             if (is_numeric($q)) {
                 $query->where('id', $q)->orWhere('nombre', 'like', "%{$q}%");
@@ -127,21 +126,15 @@ class ProductoController extends Controller
 
     protected function uploadToCloudinary($file)
     {
-        $cloudinary = env('CLOUDINARY_URL');
+        $cloudinary = $this->cloudinaryConfig();
         if (! $cloudinary) {
             return null;
         }
 
-        // CLOUDINARY_URL format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
         try {
-            $parts = parse_url($cloudinary);
-            if (! $parts || ! isset($parts['user']) || ! isset($parts['pass']) || ! isset($parts['host'])) {
-                return null;
-            }
-
-            $apiKey = $parts['user'];
-            $apiSecret = $parts['pass'];
-            $cloudName = $parts['host'];
+            $apiKey = $cloudinary['api_key'];
+            $apiSecret = $cloudinary['api_secret'];
+            $cloudName = $cloudinary['cloud_name'];
 
             $timestamp = time();
             $signature = sha1('timestamp='.$timestamp.$apiSecret);
@@ -184,19 +177,14 @@ class ProductoController extends Controller
 
     protected function deleteFromCloudinary($publicId)
     {
-        $cloudinary = env('CLOUDINARY_URL');
+        $cloudinary = $this->cloudinaryConfig();
         if (! $cloudinary) {
             return false;
         }
 
-        $parts = parse_url($cloudinary);
-        if (! $parts || ! isset($parts['user']) || ! isset($parts['pass']) || ! isset($parts['host'])) {
-            return false;
-        }
-
-        $apiKey = $parts['user'];
-        $apiSecret = $parts['pass'];
-        $cloudName = $parts['host'];
+        $apiKey = $cloudinary['api_key'];
+        $apiSecret = $cloudinary['api_secret'];
+        $cloudName = $cloudinary['cloud_name'];
 
         // Admin delete: use HTTP DELETE to resources endpoint with basic auth
         $url = "https://api.cloudinary.com/v1_1/{$cloudName}/resources/image/upload";
@@ -257,5 +245,25 @@ class ProductoController extends Controller
         $file->move($directory, $filename);
 
         return '/img/productos/'.$filename;
+    }
+
+    protected function cloudinaryConfig(): ?array
+    {
+        $url = env('CLOUDINARY_URL');
+
+        if (! is_string($url) || $url === '') {
+            return null;
+        }
+
+        $pattern = '/^cloudinary:\/\/([^:]+):([^@]+)@([^\/]+)$/';
+        if (! preg_match($pattern, $url, $matches)) {
+            return null;
+        }
+
+        return [
+            'api_key' => rawurldecode($matches[1]),
+            'api_secret' => rawurldecode($matches[2]),
+            'cloud_name' => rawurldecode($matches[3]),
+        ];
     }
 }

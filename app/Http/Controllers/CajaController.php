@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Factura;
 use App\Models\MetodoPago;
 use App\Models\ProductoXFactura;
+use App\Models\RealtimeEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,16 +16,16 @@ class CajaController extends Controller
     /**
      * Show caja view with next invoice number precomputed for 'pos' tipo.
      */
-    public function index()
+    public function index(Request $request)
     {
         $max = DB::table('facturas')->where('tipo', 'pos')->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->value('max');
         $next = $max ? intval($max) + 1 : 1;
         $nextStr = str_pad($next, 4, '0', STR_PAD_LEFT);
 
         // If the modal sent a preload payload, pass it to the view and clear it from session
-        $cajaPreload = session('caja_preload', null);
+        $cajaPreload = $request->session()->get('caja_preload');
         if ($cajaPreload) {
-            session()->forget('caja_preload');
+            $request->session()->forget('caja_preload');
         }
 
         return view('alquiler.caja', ['nextInvoiceNo' => $nextStr, 'cajaPreload' => $cajaPreload]);
@@ -147,6 +148,16 @@ class CajaController extends Controller
 
             DB::commit();
 
+            RealtimeEvent::record('factura.pagada', [
+                'entity_type' => 'factura',
+                'entity_id' => $factura->id,
+                'mesa_id' => $factura->mesa_id,
+                'tipo' => $factura->tipo,
+                'estatus' => $factura->estatus,
+                'numero_orden' => $factura->numero_orden,
+                'source' => 'caja',
+            ]);
+
             return response()->json(['message' => 'Venta guardada', 'factura_id' => $factura->id, 'numero_orden' => $factura->numero_orden, 'redirect' => route('alquiler.list')]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -238,6 +249,16 @@ class CajaController extends Controller
             }
 
             DB::commit();
+
+            RealtimeEvent::record('factura.pagada', [
+                'entity_type' => 'factura',
+                'entity_id' => $factura->id,
+                'mesa_id' => $factura->mesa_id,
+                'tipo' => $factura->tipo,
+                'estatus' => $factura->estatus,
+                'numero_orden' => $factura->numero_orden,
+                'source' => 'caja',
+            ]);
 
             return response()->json(['message' => 'Venta actualizada', 'factura_id' => $factura->id]);
         } catch (\Throwable $e) {

@@ -1,20 +1,22 @@
 <?php
 
 use App\Http\Controllers\AlquilerController;
-use App\Http\Controllers\CajaController;
-use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MesaController;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Factura;
 use App\Models\Mesa;
 use App\Models\Producto;
-use Laravel\Sanctum\PersonalAccessToken;
+use App\Models\ProductoXFactura;
+use App\Models\RealtimeEvent;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
+use Laravel\Sanctum\PersonalAccessToken;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -41,7 +43,7 @@ Route::middleware('guest')->post('/login', function (LoginRequest $request) {
     $request->session()->regenerate();
 
     $user = Auth::user();
-    if (! $user instanceof App\Models\User) {
+    if (! $user instanceof User) {
         abort(401);
     }
 
@@ -91,7 +93,7 @@ Route::middleware('auth')->get('/mesas/cards', [MesaController::class, 'cards'])
 Route::get('/mesas/cards/public', [MesaController::class, 'cards'])->name('mesas.cards.public');
 
 // Add a factura to a mesa (create invoice and associate products) — used by modal
-Route::middleware('auth')->post('/mesas/{mesa}/add-factura', function (Illuminate\Http\Request $request, App\Models\Mesa $mesa) {
+Route::middleware('auth')->post('/mesas/{mesa}/add-factura', function (Request $request, Mesa $mesa) {
     $data = $request->validate([
         'products' => 'required|array|min:1',
         'products.*.id' => 'required|integer|exists:productos,id',
@@ -99,7 +101,7 @@ Route::middleware('auth')->post('/mesas/{mesa}/add-factura', function (Illuminat
     ]);
 
     $productIds = collect($data['products'])->pluck('id')->all();
-    $products = App\Models\Producto::whereIn('id', $productIds)->get()->keyBy('id');
+    $products = Producto::whereIn('id', $productIds)->get()->keyBy('id');
 
     $total = 0;
     foreach ($data['products'] as $p) {
@@ -110,28 +112,28 @@ Route::middleware('auth')->post('/mesas/{mesa}/add-factura', function (Illuminat
     }
 
     $factura = null;
-    $factura = Illuminate\Support\Facades\DB::transaction(function () use ($mesa, $data, $products, $total) {
-        $factura = App\Models\Factura::create([
-        'tipo' => 'pos',
-        'numero_orden' => null,
-        'fecha' => now(),
-        'persona' => null,
-        'nit' => null,
-        'direccion' => null,
-        'telefono' => null,
-        'ciudad' => null,
-        'orden_compra' => null,
-        'observaciones' => 'Factura generada desde tarjeta de mesa',
-        'mesa_id' => $mesa->id,
-        'estatus' => 'pendiente',
-        'monto_total' => $total,
-        'cambio' => 0,
-    ]);
+    $factura = DB::transaction(function () use ($mesa, $data, $products, $total) {
+        $factura = Factura::create([
+            'tipo' => 'pos',
+            'numero_orden' => null,
+            'fecha' => now(),
+            'persona' => null,
+            'nit' => null,
+            'direccion' => null,
+            'telefono' => null,
+            'ciudad' => null,
+            'orden_compra' => null,
+            'observaciones' => 'Factura generada desde tarjeta de mesa',
+            'mesa_id' => $mesa->id,
+            'estatus' => 'pendiente',
+            'monto_total' => $total,
+            'cambio' => 0,
+        ]);
 
         foreach ($data['products'] as $p) {
             $prod = $products->get($p['id']);
             if ($prod) {
-                App\Models\ProductoXFactura::create([
+                ProductoXFactura::create([
                     'producto_id' => $prod->id,
                     'factura_id' => $factura->id,
                     'cantidad' => (int) $p['qty'],
@@ -144,12 +146,22 @@ Route::middleware('auth')->post('/mesas/{mesa}/add-factura', function (Illuminat
         return $factura;
     });
 
+    RealtimeEvent::record('mesa.factura.created', [
+        'entity_type' => 'factura',
+        'entity_id' => $factura->id,
+        'mesa_id' => $mesa->id,
+        'tipo' => $factura->tipo,
+        'estatus' => $factura->estatus,
+        'monto_total' => $factura->monto_total,
+        'source' => 'mesa',
+    ]);
+
     return response()->json(['success' => true, 'factura_id' => $factura->id, 'estatus' => $factura->estatus]);
 })->name('mesas.add_factura');
 
 // Add products to the existing open factura for a mesa (does not create a new factura)
 // NOTE: made public to allow adding from the cards view when auth is not required for testing
-Route::post('/mesas/{mesa}/add-to-factura', function (Illuminate\Http\Request $request, App\Models\Mesa $mesa) {
+Route::post('/mesas/{mesa}/add-to-factura', function (Request $request, Mesa $mesa) {
     $payload = $request->input('products');
 
     if (! is_array($payload) || count($payload) === 0) {
@@ -175,30 +187,34 @@ Route::post('/mesas/{mesa}/add-to-factura', function (Illuminate\Http\Request $r
     }
 
     $productIds = collect($normalized)->pluck('id')->all();
-    $products = App\Models\Producto::whereIn('id', $productIds)->get()->keyBy('id');
+    $products = Producto::whereIn('id', $productIds)->get()->keyBy('id');
 
     // check all products exist
     $missing = [];
     foreach ($productIds as $pid) {
-        if (! $products->has($pid)) $missing[] = $pid;
+        if (! $products->has($pid)) {
+            $missing[] = $pid;
+        }
     }
     if (! empty($missing)) {
-        return response()->json(['success' => false, 'message' => 'Algunos productos no existen: ' . implode(',', $missing)], 400);
+        return response()->json(['success' => false, 'message' => 'Algunos productos no existen: '.implode(',', $missing)], 400);
     }
 
     $addedTotal = 0;
 
-    $factura = Illuminate\Support\Facades\DB::transaction(function () use ($factura, $normalized, $products, &$addedTotal, $mesa, $shouldCreate) {
+    $factura = DB::transaction(function () use ($factura, $normalized, $products, &$addedTotal, $mesa, $shouldCreate) {
         // create factura if needed
         if ($shouldCreate) {
             $totalForCreation = 0;
             foreach ($normalized as $p) {
                 $prod = $products->get($p['id']);
-                if ($prod) $totalForCreation += (float) $prod->precio * (int) $p['qty'];
+                if ($prod) {
+                    $totalForCreation += (float) $prod->precio * (int) $p['qty'];
+                }
             }
 
-            $factura = App\Models\Factura::create([
-                    'tipo' => 'pos',
+            $factura = Factura::create([
+                'tipo' => 'pos',
                 'numero_orden' => null,
                 'fecha' => now(),
                 'persona' => null,
@@ -217,8 +233,10 @@ Route::post('/mesas/{mesa}/add-to-factura', function (Illuminate\Http\Request $r
             // create initial product lines
             foreach ($normalized as $p) {
                 $prod = $products->get($p['id']);
-                if (! $prod) continue;
-                App\Models\ProductoXFactura::create([
+                if (! $prod) {
+                    continue;
+                }
+                ProductoXFactura::create([
                     'producto_id' => $prod->id,
                     'factura_id' => $factura->id,
                     'cantidad' => (int) $p['qty'],
@@ -231,16 +249,18 @@ Route::post('/mesas/{mesa}/add-to-factura', function (Illuminate\Http\Request $r
             // append to existing factura
             foreach ($normalized as $p) {
                 $prod = $products->get($p['id']);
-                if (! $prod) continue;
+                if (! $prod) {
+                    continue;
+                }
 
                 $qty = (int) $p['qty'];
-                $pxf = App\Models\ProductoXFactura::where('factura_id', $factura->id)->where('producto_id', $prod->id)->first();
+                $pxf = ProductoXFactura::where('factura_id', $factura->id)->where('producto_id', $prod->id)->first();
                 if ($pxf) {
                     $pxf->cantidad = ((int) $pxf->cantidad) + $qty;
                     $pxf->precio_unitario = $prod->precio;
                     $pxf->save();
                 } else {
-                    App\Models\ProductoXFactura::create([
+                    ProductoXFactura::create([
                         'producto_id' => $prod->id,
                         'factura_id' => $factura->id,
                         'cantidad' => $qty,
@@ -259,6 +279,18 @@ Route::post('/mesas/{mesa}/add-to-factura', function (Illuminate\Http\Request $r
 
         return $factura;
     });
+
+    RealtimeEvent::record($shouldCreate ? 'mesa.factura.created' : 'mesa.factura.updated', [
+        'entity_type' => 'factura',
+        'entity_id' => $factura->id,
+        'mesa_id' => $mesa->id,
+        'tipo' => $factura->tipo,
+        'estatus' => $factura->estatus,
+        'monto_total' => $factura->monto_total,
+        'added_total' => $addedTotal,
+        'action' => $shouldCreate ? 'created' : 'updated',
+        'source' => 'mesa',
+    ]);
 
     return response()->json(['success' => true, 'factura_id' => $factura->id, 'estatus' => $factura->estatus, 'added_total' => $addedTotal]);
 })->name('mesas.add_to_factura');
@@ -296,7 +328,6 @@ Route::middleware('auth')->get('/alquiler', function (Request $request) {
                     'producto_id' => $it->producto_id ?? null,
                 ];
             }
-
             foreach ($factura->metodosPago as $m) {
                 $metodos[] = ['metodo' => $m->metodo, 'valor' => $m->valor];
             }
@@ -331,7 +362,7 @@ Route::middleware('auth')->post('/alquiler/caja/preload', function (Request $req
         $id = isset($it['id']) ? (int) $it['id'] : null;
         $qty = isset($it['qty']) ? (int) $it['qty'] : null;
         if (! $id || $id <= 0 || ! $qty || $qty <= 0) {
-            return response()->json(['success' => false, 'message' => "Producto inválido en posición {$i}.",], 400);
+            return response()->json(['success' => false, 'message' => "Producto inválido en posición {$i}."], 400);
         }
         $normalized[] = ['producto_id' => $id, 'cant' => $qty];
     }
@@ -352,18 +383,13 @@ Route::middleware('auth')->post('/alquiler/caja/preload', function (Request $req
         'items' => $normalized,
         'mesa_id' => $mesaId,
         'factura_id' => $facturaId,
-        'cliente' => ['nombre' => $mesaId ? "Mesa {$mesaId}" : 'Caja']
+        'cliente' => ['nombre' => $mesaId ? "Mesa {$mesaId}" : 'Caja'],
     ];
 
     session(['caja_preload' => $caja]);
 
     return response()->json(['success' => true, 'redirect' => route('alquiler.caja')]);
 })->name('alquiler.caja.preload');
-
-// Caja view and store
-Route::middleware('auth')->get('/alquiler/caja', [CajaController::class, 'index'])->name('alquiler.caja');
-
-Route::middleware('auth')->post('/alquiler/caja', [CajaController::class, 'store'])->name('alquiler.caja.store');
 
 // Alquiler - listado (tabla) para CRUD general (mostrar todos los tipos)
 Route::middleware('auth')->get('/alquiler/list', function () {

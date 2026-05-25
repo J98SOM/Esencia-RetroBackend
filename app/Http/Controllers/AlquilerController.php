@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Factura;
 use App\Models\MetodoPago;
 use App\Models\ProductoXFactura;
+use App\Models\RealtimeEvent;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -153,6 +154,16 @@ class AlquilerController extends Controller
             }
 
             DB::commit();
+
+            RealtimeEvent::record('factura.creada', [
+                'entity_type' => 'factura',
+                'entity_id' => $factura->id,
+                'mesa_id' => $factura->mesa_id,
+                'tipo' => $factura->tipo,
+                'estatus' => $factura->estatus,
+                'numero_orden' => $factura->numero_orden,
+                'source' => 'alquiler',
+            ]);
 
             return response()->json([
                 'message' => 'Factura creada',
@@ -329,6 +340,16 @@ class AlquilerController extends Controller
             }
 
             DB::commit();
+
+            RealtimeEvent::record('factura.actualizada', [
+                'entity_type' => 'factura',
+                'entity_id' => $factura->id,
+                'mesa_id' => $factura->mesa_id,
+                'tipo' => $factura->tipo,
+                'estatus' => $factura->estatus,
+                'numero_orden' => $factura->numero_orden,
+                'source' => 'alquiler',
+            ]);
 
             return response()->json(['message' => 'Factura actualizada', 'factura_id' => $factura->id, 'redirect' => route('alquiler.list')]);
         } catch (\Throwable $e) {
