@@ -20,12 +20,12 @@ class ProductoController extends Controller
             } else {
                 $query->where('nombre', 'like', "%{$q}%");
             }
-            $results = $query->select('id', 'nombre', 'precio')->limit(15)->get();
+            $results = $query->select('id', 'nombre', 'categoria', 'precio', 'imagen_url')->limit(15)->get();
 
             return response()->json($results);
         }
 
-        return response()->json(Producto::select('id', 'nombre', 'precio')->get());
+        return response()->json(Producto::select('id', 'nombre', 'categoria', 'precio', 'imagen_url')->get());
     }
 
     public function store(Request $request)
@@ -43,6 +43,9 @@ class ProductoController extends Controller
                 if ($upload && isset($upload['secure_url'])) {
                     $data['imagen_url'] = $upload['secure_url'];
                     $data['imagen_public_id'] = $upload['public_id'] ?? null;
+                } else {
+                    $data['imagen_url'] = $this->storeLocalImage($request->file('imagen'));
+                    $data['imagen_public_id'] = null;
                 }
             }
 
@@ -86,6 +89,9 @@ class ProductoController extends Controller
                 if ($upload && isset($upload['secure_url'])) {
                     $data['imagen_url'] = $upload['secure_url'];
                     $data['imagen_public_id'] = $upload['public_id'] ?? null;
+                } else {
+                    $data['imagen_url'] = $this->storeLocalImage($request->file('imagen'));
+                    $data['imagen_public_id'] = null;
                 }
             }
 
@@ -108,9 +114,7 @@ class ProductoController extends Controller
     public function destroy(Producto $producto)
     {
         try {
-            if ($producto->imagen_public_id) {
-                $this->deleteFromCloudinary($producto->imagen_public_id);
-            }
+            $this->deleteStoredImage($producto);
             $producto->delete();
 
             return response()->json(['message' => 'Producto eliminado']);
@@ -214,5 +218,44 @@ class ProductoController extends Controller
         }
 
         return true;
+    }
+
+    protected function deleteStoredImage(Producto $producto): void
+    {
+        if ($producto->imagen_public_id) {
+            $this->deleteFromCloudinary($producto->imagen_public_id);
+
+            return;
+        }
+
+        if (! $producto->imagen_url) {
+            return;
+        }
+
+        $path = parse_url($producto->imagen_url, PHP_URL_PATH);
+        if (! $path) {
+            return;
+        }
+
+        if (str_starts_with($path, '/img/productos/')) {
+            $fullPath = public_path(ltrim($path, '/'));
+            if (is_file($fullPath)) {
+                unlink($fullPath);
+            }
+        }
+    }
+
+    protected function storeLocalImage($file): string
+    {
+        $directory = public_path('img/productos');
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = uniqid('producto_', true).'_'.$file->getClientOriginalName();
+        $file->move($directory, $filename);
+
+        return '/img/productos/'.$filename;
     }
 }
