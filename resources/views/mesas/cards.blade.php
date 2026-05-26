@@ -278,13 +278,16 @@ document.addEventListener('DOMContentLoaded', function () {
             Swal.fire('Atención', 'Selecciona al menos un producto para facturar.', 'warning');
             return;
         }
+        
 
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         fetch('/alquiler/caja/preload', {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ products: selected, mesa_id: selectedMesaId })
@@ -319,9 +322,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         fetch('/mesas/' + selectedMesaId + '/add-to-factura', {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ products: selected })

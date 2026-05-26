@@ -391,6 +391,9 @@ Route::middleware('auth')->post('/alquiler/caja/preload', function (Request $req
     return response()->json(['success' => true, 'redirect' => route('alquiler.caja')]);
 })->name('alquiler.caja.preload');
 
+// Persistar factura desde la interfaz de Caja (POS)
+Route::middleware('auth')->post('/alquiler/caja', [AlquilerController::class, 'store'])->name('alquiler.caja.store');
+
 // Caja view (POS) - renderiza la interfaz de caja y consume posibles datos preload desde sesión
 Route::middleware('auth')->get('/alquiler/caja', function (Request $request) {
     // calcular siguiente número de factura para tipo 'pos'

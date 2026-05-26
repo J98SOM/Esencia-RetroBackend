@@ -16,6 +16,59 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Server-Sent Events stream (public route) — authenticates using query token via SanctumTokenResolver
+Route::get('/realtime/stream', function (Request $request) {
+    $user = SanctumTokenResolver::resolveUser($request->query('token'));
+    if (! $user) {
+        return response()->json(['message' => 'Unauthorized'], 401);
+    }
+
+    $afterId = (int) $request->integer('after_id', 0);
+    $mesaId = $request->integer('mesa_id') ?: null;
+    $eventKey = $request->string('event_key')->trim()->toString();
+
+    return response()->stream(function () use ($afterId, $mesaId, $eventKey): void {
+        ignore_user_abort(true);
+        set_time_limit(0);
+
+        echo "retry: 3000\n\n";
+        @ob_flush();
+        @flush();
+
+        $lastId = $afterId;
+
+        while (! connection_aborted()) {
+            $events = RealtimeEvent::query()
+                ->when($lastId > 0, fn ($query) => $query->where('id', '>', $lastId))
+                ->when($mesaId, fn ($query) => $query->where('mesa_id', $mesaId))
+                ->when($eventKey !== '', fn ($query) => $query->where('event_key', $eventKey))
+                ->orderBy('id')
+                ->limit(50)
+                ->get();
+
+            foreach ($events as $event) {
+                $lastId = $event->id;
+                echo 'id: '.$event->id."\n";
+                echo 'event: '.$event->event_key."\n";
+                echo 'data: '.json_encode($event->toRealtimeArray(), JSON_UNESCAPED_UNICODE)."\n\n";
+            }
+
+            if ($events->isEmpty()) {
+                echo ": ping\n\n";
+            }
+
+            @ob_flush();
+            @flush();
+            sleep(2);
+        }
+    }, 200, [
+        'Content-Type' => 'text/event-stream',
+        'Cache-Control' => 'no-cache, no-transform',
+        'Connection' => 'keep-alive',
+        'X-Accel-Buffering' => 'no',
+    ]);
+})->name('api.realtime.stream');
+
 Route::middleware('auth:sanctum')->group(function () {
     // Auth routes
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -110,57 +163,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     })->name('api.realtime.events');
 
-    Route::get('/realtime/stream', function (Request $request) {
-        $user = SanctumTokenResolver::resolveUser($request->query('token'));
-        if (! $user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
-
-        $afterId = (int) $request->integer('after_id', 0);
-        $mesaId = $request->integer('mesa_id') ?: null;
-        $eventKey = $request->string('event_key')->trim()->toString();
-
-        return response()->stream(function () use ($afterId, $mesaId, $eventKey): void {
-            ignore_user_abort(true);
-            set_time_limit(0);
-
-            echo "retry: 3000\n\n";
-            @ob_flush();
-            @flush();
-
-            $lastId = $afterId;
-
-            while (! connection_aborted()) {
-                $events = RealtimeEvent::query()
-                    ->when($lastId > 0, fn ($query) => $query->where('id', '>', $lastId))
-                    ->when($mesaId, fn ($query) => $query->where('mesa_id', $mesaId))
-                    ->when($eventKey !== '', fn ($query) => $query->where('event_key', $eventKey))
-                    ->orderBy('id')
-                    ->limit(50)
-                    ->get();
-
-                foreach ($events as $event) {
-                    $lastId = $event->id;
-                    echo 'id: '.$event->id."\n";
-                    echo 'event: '.$event->event_key."\n";
-                    echo 'data: '.json_encode($event->toRealtimeArray(), JSON_UNESCAPED_UNICODE)."\n\n";
-                }
-
-                if ($events->isEmpty()) {
-                    echo ": ping\n\n";
-                }
-
-                @ob_flush();
-                @flush();
-                sleep(2);
-            }
-        }, 200, [
-            'Content-Type' => 'text/event-stream',
-            'Cache-Control' => 'no-cache, no-transform',
-            'Connection' => 'keep-alive',
-            'X-Accel-Buffering' => 'no',
-        ]);
-    })->name('api.realtime.stream');
+    // NOTE: realtime/stream is defined outside the auth group to allow token-in-query authentication
 
     // PDF download via controller (returns binary/pdf) - keep behind auth
     Route::get('/alquiler/{id}/pdf', [AlquilerController::class, 'pdf'])->name('api.alquiler.pdf');
