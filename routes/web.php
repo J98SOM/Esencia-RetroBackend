@@ -391,6 +391,21 @@ Route::middleware('auth')->post('/alquiler/caja/preload', function (Request $req
     return response()->json(['success' => true, 'redirect' => route('alquiler.caja')]);
 })->name('alquiler.caja.preload');
 
+// Caja view (POS) - renderiza la interfaz de caja y consume posibles datos preload desde sesión
+Route::middleware('auth')->get('/alquiler/caja', function (Request $request) {
+    // calcular siguiente número de factura para tipo 'pos'
+    $max = DB::table('facturas')->where('tipo', 'pos')->select(DB::raw('MAX(CAST(numero_orden AS UNSIGNED)) as max'))->value('max');
+    $next = $max ? intval($max) + 1 : 1;
+    $nextStr = str_pad($next, 4, '0', STR_PAD_LEFT);
+
+    $cajaPreload = session('caja_preload');
+
+    return view('alquiler.caja', [
+        'nextInvoiceNo' => $nextStr,
+        'cajaPreload' => $cajaPreload,
+    ]);
+})->name('alquiler.caja');
+
 // Alquiler - listado (tabla) para CRUD general (mostrar todos los tipos)
 Route::middleware('auth')->get('/alquiler/list', function () {
     $facturas = Factura::orderBy('fecha', 'desc')->paginate(20);
