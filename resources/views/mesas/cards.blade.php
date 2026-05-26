@@ -361,5 +361,93 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+<script>
+// Realtime: connect to SSE stream and update mesa cards status
+(function () {
+    function getToken() {
+        try { return window.getApiAuthToken ? window.getApiAuthToken() : window.__AUTH_TOKEN__ || ''; } catch (e) { return window.__AUTH_TOKEN__ || ''; }
+    }
+
+    function updateMesaCard(mesaId, estatus) {
+        if (!mesaId) return;
+        const btn = document.querySelector('[data-mesa-id="' + mesaId + '"]');
+        if (!btn) return;
+        const card = btn.closest('.relative');
+        if (!card) return;
+        const meta = card.querySelector('.mesa-meta');
+        if (!meta) return;
+
+        const old = meta.querySelector('.mesa-status-badge');
+        if (old) old.remove();
+
+        const status = (estatus || '').toString().toLowerCase();
+        if (status === 'pendiente') {
+            const span = document.createElement('span');
+            span.className = 'mesa-status-badge inline-flex items-center bg-amber-600 text-white text-[11px] px-3 py-1 rounded-full shadow-sm';
+            span.textContent = 'Pendiente';
+            meta.appendChild(span);
+        } else if (status === 'pagado' || status === 'pagada') {
+            const span = document.createElement('span');
+            span.className = 'mesa-status-badge inline-flex items-center bg-emerald-600 text-white text-[11px] px-3 py-1 rounded-full shadow-sm';
+            span.textContent = 'Disponible';
+            meta.appendChild(span);
+        } else {
+            // Other statuses: show pending as default
+            const span = document.createElement('span');
+            span.className = 'mesa-status-badge inline-flex items-center bg-amber-600 text-white text-[11px] px-3 py-1 rounded-full shadow-sm';
+            span.textContent = (status || 'Pendiente');
+            meta.appendChild(span);
+        }
+    }
+
+    function connectRealtime() {
+        const token = getToken();
+        if (!token) return;
+        const params = new URLSearchParams();
+        params.set('token', token);
+        // no mesa_id so we receive all mesa events
+        const url = '/api/realtime/stream?' + params.toString();
+
+        try {
+            const es = new EventSource(url);
+
+            es.onopen = function () { console.log('Realtime connected'); };
+            es.onerror = function (e) { console.warn('Realtime error', e); es.close(); setTimeout(connectRealtime, 2000); };
+
+            // listen to named events (server emits event: <event_key>)
+            const eventsToHandle = ['mesa.factura.created', 'mesa.factura.updated', 'factura.pagada', 'factura.creada'];
+            eventsToHandle.forEach(evName => {
+                es.addEventListener(evName, function (ev) {
+                    try {
+                        const data = JSON.parse(ev.data || '{}');
+                        const mesaId = data.mesa_id || (data.payload && data.payload.mesa_id) || null;
+                        const estatus = data.estatus || (data.payload && data.payload.estatus) || null;
+                        if (mesaId) updateMesaCard(mesaId, estatus);
+                    } catch (err) { console.error('Realtime parse error', err); }
+                });
+            });
+
+            // fallback: generic message handler in case server uses default message events
+            es.onmessage = function (ev) {
+                try {
+                    const data = JSON.parse(ev.data || '{}');
+                    const mesaId = data.mesa_id || (data.payload && data.payload.mesa_id) || null;
+                    const estatus = data.estatus || (data.payload && data.payload.estatus) || null;
+                    if (mesaId) updateMesaCard(mesaId, estatus);
+                } catch (err) { /* ignore */ }
+            };
+        } catch (e) {
+            console.error('Realtime not supported', e);
+        }
+    }
+
+    // start connection after DOM ready
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        connectRealtime();
+    } else {
+        document.addEventListener('DOMContentLoaded', connectRealtime);
+    }
+})();
+</script>
 @endpush
 @endsection
